@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import AppLayout from './components/layout/AppLayout'
+import LoginPage from './pages/auth/LoginPage'
 import DashboardPage from './pages/dashboard/DashboardPage'
 import ClustersListPage from './pages/clusters/ClustersListPage'
 import ClusterDetailPage from './pages/clusters/ClusterDetailPage'
@@ -15,6 +17,14 @@ import MLEngineeringPage from './pages/ml-engineering/MLEngineeringPage'
 import SettingsPage from './pages/settings/SettingsPage'
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => sessionStorage.getItem('kubogent_auth') === 'true'
+  )
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={() => setIsAuthenticated(true)} />
+  }
+
   return (
     <Routes>
       <Route element={<AppLayout />}>
