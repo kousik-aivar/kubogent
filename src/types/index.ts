@@ -128,7 +128,8 @@ export interface ActivityItem {
 }
 
 // Table
-export interface Column<T> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface Column<T = any> {
   key: string;
   label: string;
   width?: string;
