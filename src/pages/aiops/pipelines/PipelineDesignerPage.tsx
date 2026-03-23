@@ -105,8 +105,8 @@ export default function PipelineDesignerPage() {
           target: stage.id,
           animated: parent?.status === 'Running' || parent?.status === 'Completed',
           style: {
-            stroke: parent?.status === 'Completed' ? '#22c55e' : parent?.status === 'Running' ? '#3b82f6' : '#262626',
-            strokeWidth: 2,
+            stroke: parent?.status === 'Completed' ? '#22c55e' : parent?.status === 'Running' ? '#3b82f6' : '#525252',
+            strokeWidth: 2.5,
           },
         })
       })
@@ -121,7 +121,7 @@ export default function PipelineDesignerPage() {
         source: stage.id,
         target: pipeline.stages[i + 1].id,
         animated: stage.status === 'Running' || stage.status === 'Completed',
-        style: { stroke: stage.status === 'Completed' ? '#22c55e' : stage.status === 'Running' ? '#3b82f6' : '#262626', strokeWidth: 2 },
+        style: { stroke: stage.status === 'Completed' ? '#22c55e' : stage.status === 'Running' ? '#3b82f6' : '#525252', strokeWidth: 2 },
       })
     })
   }
@@ -161,7 +161,7 @@ export default function PipelineDesignerPage() {
               fitView
               proOptions={{ hideAttribution: true }}
             >
-              <Background color="#262626" gap={20} />
+              <Background color="#333333" gap={20} />
               <Controls />
               <MiniMap style={{ backgroundColor: '#111111' }} nodeColor="#262626" maskColor="rgba(0,0,0,0.5)" />
             </ReactFlow>
