@@ -46,6 +46,13 @@ export interface Cluster {
 }
 
 // Model types
+export interface ModelVersion {
+  version: string;
+  source: string;
+  date: string;
+  pipelineRunId?: string;
+}
+
 export interface Model {
   id: string;
   name: string;
@@ -59,6 +66,7 @@ export interface Model {
   lastUpdated: string;
   deploymentCount: number;
   description: string;
+  versions?: ModelVersion[];
 }
 
 // Deployment types
@@ -78,6 +86,12 @@ export interface Deployment {
   successRate: number;
   createdAt: string;
   gpuMemoryUsage: number;
+  pipelineId?: string;
+  pipelineName?: string;
+  pipelineRunId?: string;
+  modelVersion?: string;
+  lastUpdated?: string;
+  deploymentPath?: 'direct' | 'pipeline';
 }
 
 // Pipeline types
@@ -156,6 +170,8 @@ export interface Pipeline {
   config?: PipelineConfig;
   runs?: PipelineRun[];
   yamlDefinition?: string;
+  linkedDeploymentIds?: string[];
+  lastRunStatus?: 'Running' | 'Completed' | 'Failed';
 }
 
 // Metrics

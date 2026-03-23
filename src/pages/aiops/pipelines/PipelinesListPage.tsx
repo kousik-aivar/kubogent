@@ -36,6 +36,12 @@ const columns: Column<Pipeline>[] = [
   { key: 'totalRuns', label: 'Runs', render: (r) => <span className="text-sm">{r.totalRuns || 0}</span> },
   { key: 'avgDuration', label: 'Avg Duration', render: (r) => <span className="text-sm text-text-secondary">{r.avgDuration || '-'}</span> },
   { key: 'stages', label: 'Stages', render: (r) => <span className="text-sm">{r.stages.length}</span> },
+  { key: 'linkedDeploymentIds', label: 'Deployments', render: (r) => (
+    <span className={`text-sm ${(r.linkedDeploymentIds?.length || 0) > 0 ? 'text-accent-green' : 'text-text-muted'}`}>
+      {r.linkedDeploymentIds?.length || 0} active
+    </span>
+  )},
+  { key: 'lastRunStatus', label: 'Last Run', render: (r) => r.lastRunStatus ? <StatusBadge status={r.lastRunStatus} /> : <span className="text-text-muted text-xs">-</span> },
 ]
 
 export default function PipelinesListPage() {

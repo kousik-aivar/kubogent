@@ -14,6 +14,12 @@ export const mockModels: Model[] = [
     lastUpdated: '2025-02-15',
     deploymentCount: 2,
     description: 'Meta Llama 3.1 70B instruction-tuned model for general-purpose text generation',
+    versions: [
+      { version: 'v2.1', source: 'Pipeline: Llama-3.1 Fine-Tuning #5', date: '2025-03-21', pipelineRunId: 'run-5' },
+      { version: 'v2.0', source: 'Pipeline: Llama-3.1 Fine-Tuning #3', date: '2025-03-17', pipelineRunId: 'run-3' },
+      { version: 'v1.1', source: 'Pipeline: Llama-3.1 Fine-Tuning #2', date: '2025-03-15', pipelineRunId: 'run-2' },
+      { version: 'v1.0', source: 'HuggingFace (base model)', date: '2025-02-15' },
+    ],
   },
   {
     id: 'mdl-002',
@@ -28,6 +34,9 @@ export const mockModels: Model[] = [
     lastUpdated: '2025-01-20',
     deploymentCount: 1,
     description: 'Mistral 7B instruction-following model with sliding window attention',
+    versions: [
+      { version: 'v0.3', source: 'HuggingFace (direct import)', date: '2025-01-20' },
+    ],
   },
   {
     id: 'mdl-003',
@@ -42,6 +51,10 @@ export const mockModels: Model[] = [
     lastUpdated: '2025-03-18',
     deploymentCount: 0,
     description: 'Code generation model specialized in Python, built from private repository',
+    versions: [
+      { version: 'v2.0', source: 'GitHub: kousik-aivar/codellama-ft (building)', date: '2025-03-18' },
+      { version: 'v1.0', source: 'GitHub: kousik-aivar/codellama-ft', date: '2025-03-01' },
+    ],
   },
   {
     id: 'mdl-004',
@@ -56,6 +69,11 @@ export const mockModels: Model[] = [
     lastUpdated: '2025-02-28',
     deploymentCount: 1,
     description: 'OpenAI Whisper large model for automatic speech recognition, INT8 quantized',
+    versions: [
+      { version: 'v3.0-int8', source: 'Pipeline: Whisper ASR Optimization #4', date: '2025-03-21', pipelineRunId: 'run-4' },
+      { version: 'v3.0', source: 'S3: kubogent-models/whisper/', date: '2025-02-28' },
+      { version: 'v2.0', source: 'S3: kubogent-models/whisper/', date: '2025-01-15' },
+    ],
   },
   {
     id: 'mdl-005',
@@ -70,6 +88,10 @@ export const mockModels: Model[] = [
     lastUpdated: '2025-03-10',
     deploymentCount: 1,
     description: 'Fine-tuned BERT model for financial sentiment analysis',
+    versions: [
+      { version: 'v2.0', source: 'Pipeline: FinBERT Retraining #1', date: '2025-03-08', pipelineRunId: 'run-1' },
+      { version: 'v1.0', source: 'MLflow: finbert-experiments/best', date: '2025-02-01' },
+    ],
   },
   {
     id: 'mdl-006',
@@ -84,6 +106,9 @@ export const mockModels: Model[] = [
     lastUpdated: '2025-03-05',
     deploymentCount: 1,
     description: 'DeepSeek code generation model supporting 338+ programming languages',
+    versions: [
+      { version: 'v1.0', source: 'HuggingFace (direct import)', date: '2025-03-05' },
+    ],
   },
   {
     id: 'mdl-007',
@@ -98,6 +123,9 @@ export const mockModels: Model[] = [
     lastUpdated: '2025-03-15',
     deploymentCount: 0,
     description: 'Google Gemma 2 model - build failed due to incompatible CUDA version',
+    versions: [
+      { version: 'v2.0', source: 'HuggingFace (build failed)', date: '2025-03-15' },
+    ],
   },
   {
     id: 'mdl-008',
@@ -112,5 +140,8 @@ export const mockModels: Model[] = [
     lastUpdated: '2025-02-01',
     deploymentCount: 0,
     description: 'Databricks DBRX mixture-of-experts model for enterprise use cases',
+    versions: [
+      { version: 'v1.0', source: 'S3: kubogent-models/dbrx/', date: '2025-02-01' },
+    ],
   },
 ]

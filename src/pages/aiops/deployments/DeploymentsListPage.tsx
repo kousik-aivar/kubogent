@@ -9,14 +9,24 @@ import { mockDeployments } from '../../../data/mockDeployments'
 import type { Deployment, Column } from '../../../types'
 
 const columns: Column<Deployment>[] = [
-  { key: 'modelName', label: 'Model', render: (r) => <span className="font-medium">{r.modelName}</span> },
+  { key: 'modelName', label: 'Model', render: (r) => (
+    <div>
+      <span className="font-medium">{r.modelName}</span>
+      {r.modelVersion && <span className="text-xs text-text-muted ml-1.5">{r.modelVersion}</span>}
+    </div>
+  )},
+  { key: 'pipelineName', label: 'Pipeline', render: (r) => r.pipelineName ? (
+    <span className="text-xs px-2 py-0.5 rounded bg-accent-purple/10 text-accent-purple">{r.pipelineName.split(' ').slice(0, 2).join(' ')}</span>
+  ) : (
+    <span className="text-xs px-2 py-0.5 rounded bg-accent-green/10 text-accent-green">Direct</span>
+  )},
   { key: 'clusterName', label: 'Cluster', render: (r) => <span className="text-text-secondary text-xs">{r.clusterName}</span> },
-  { key: 'servingFramework', label: 'Framework', render: (r) => <span className="text-xs px-2 py-0.5 rounded bg-bg-tertiary text-text-secondary">{r.servingFramework}</span> },
   { key: 'status', label: 'Status', render: (r) => <StatusBadge status={r.status} /> },
-  { key: 'endpointUrl', label: 'Endpoint', render: (r) => r.status === 'Running' ? <span className="font-mono text-xs text-accent-blue truncate max-w-48 block">{r.endpointUrl}</span> : <span className="text-text-muted text-xs">-</span> },
+  { key: 'endpointUrl', label: 'Endpoint', render: (r) => r.status === 'Running' ? <span className="font-mono text-xs text-accent-blue truncate max-w-40 block">{r.endpointUrl}</span> : <span className="text-text-muted text-xs">-</span> },
   { key: 'avgLatencyMs', label: 'Latency', render: (r) => r.avgLatencyMs > 0 ? <span>{r.avgLatencyMs}ms</span> : <span className="text-text-muted">-</span> },
   { key: 'throughputTokensPerSec', label: 'Throughput', render: (r) => r.throughputTokensPerSec > 0 ? <span>{r.throughputTokensPerSec} tok/s</span> : <span className="text-text-muted">-</span> },
   { key: 'successRate', label: 'Success', render: (r) => r.successRate > 0 ? <span className="text-accent-green">{r.successRate}%</span> : <span className="text-text-muted">-</span> },
+  { key: 'lastUpdated', label: 'Updated', render: (r) => <span className="text-xs text-text-muted">{r.lastUpdated || r.createdAt}</span> },
 ]
 
 export default function DeploymentsListPage() {

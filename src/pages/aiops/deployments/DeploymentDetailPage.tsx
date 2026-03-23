@@ -4,13 +4,15 @@ import { ArrowLeft, ExternalLink } from 'lucide-react'
 import TabGroup from '../../../components/shared/TabGroup'
 import StatusBadge from '../../../components/shared/StatusBadge'
 import MetricCard from '../../../components/shared/MetricCard'
+import DeploymentLineageTab from './DeploymentLineageTab'
 import { mockDeployments } from '../../../data/mockDeployments'
 import { deploymentLatencyTimeSeries } from '../../../data/mockMetrics'
-import { Timer, Zap, CheckCircle, Cpu } from 'lucide-react'
+import { Timer, Zap, CheckCircle, Cpu, GitBranch } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 const tabs = [
   { key: 'metrics', label: 'Metrics' },
+  { key: 'lineage', label: 'Lineage' },
   { key: 'logs', label: 'Logs' },
   { key: 'scaling', label: 'Scaling History' },
 ]
@@ -52,8 +54,17 @@ export default function DeploymentDetailPage() {
           <div className="flex items-center gap-4 text-sm text-text-secondary">
             <span>{dep.clusterName}</span>
             <span className="px-2 py-0.5 rounded bg-bg-tertiary text-xs">{dep.servingFramework}</span>
+            {dep.modelVersion && <span className="text-xs text-text-muted">{dep.modelVersion}</span>}
+            {dep.pipelineName && (
+              <Link to={`/aiops/pipelines/${dep.pipelineId}`} className="flex items-center gap-1 text-xs text-accent-purple hover:underline">
+                <GitBranch className="w-3 h-3" /> via {dep.pipelineName}
+              </Link>
+            )}
+            {!dep.pipelineName && (
+              <span className="text-xs px-2 py-0.5 rounded bg-accent-green/10 text-accent-green">Direct Deploy</span>
+            )}
             {dep.status === 'Running' && (
-              <a href="#" className="flex items-center gap-1 text-accent-blue hover:underline">
+              <a href="#" className="flex items-center gap-1 text-accent-blue hover:underline text-xs">
                 {dep.endpointUrl} <ExternalLink className="w-3 h-3" />
               </a>
             )}
@@ -100,6 +111,8 @@ export default function DeploymentDetailPage() {
           </div>
         </div>
       )}
+
+      {activeTab === 'lineage' && <DeploymentLineageTab deployment={dep} />}
 
       {activeTab === 'logs' && (
         <div className="bg-bg-secondary border border-border rounded-xl p-5">

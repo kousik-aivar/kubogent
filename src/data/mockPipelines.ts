@@ -14,6 +14,8 @@ export const mockPipelines: Pipeline[] = [
     successRate: 83,
     totalRuns: 12,
     avgDuration: '2h 05m',
+    linkedDeploymentIds: ['dep-001', 'dep-003'],
+    lastRunStatus: 'Running',
     stages: [
       {
         id: 's1', name: 'Data Preparation', type: 'data-prep', status: 'Completed', duration: '15m',
@@ -275,6 +277,8 @@ spec:
     successRate: 100,
     totalRuns: 4,
     avgDuration: '42m',
+    linkedDeploymentIds: ['dep-004'],
+    lastRunStatus: 'Completed',
     stages: [
       {
         id: 's1', name: 'Audio Preprocessing', type: 'data-prep', status: 'Completed', duration: '10m',
@@ -391,6 +395,8 @@ spec:
     successRate: 33,
     totalRuns: 3,
     avgDuration: '35m',
+    linkedDeploymentIds: ['dep-005'],
+    lastRunStatus: 'Failed',
     stages: [
       {
         id: 's1', name: 'Data Ingestion', type: 'data-prep', status: 'Completed', duration: '8m',
