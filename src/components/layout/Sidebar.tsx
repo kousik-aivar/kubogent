@@ -22,7 +22,7 @@ const navItems = [
     label: 'AIOps',
     icon: Brain,
     children: [
-      { label: 'Model Registry', path: '/aiops/models', icon: Box },
+      { label: 'Model Catalog', path: '/aiops/models', icon: Box },
       { label: 'Deployments', path: '/aiops/deployments', icon: Rocket },
       { label: 'Pipelines', path: '/aiops/pipelines', icon: GitBranch },
     ],

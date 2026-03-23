@@ -16,7 +16,7 @@ export default function ModelDetailPage() {
   return (
     <div>
       <Link to="/aiops/models" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary mb-4">
-        <ArrowLeft className="w-4 h-4" /> Back to Model Registry
+        <ArrowLeft className="w-4 h-4" /> Back to Model Catalog
       </Link>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
