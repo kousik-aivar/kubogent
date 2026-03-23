@@ -6,8 +6,14 @@ import {
   Background,
   Controls,
   MiniMap,
+  Handle,
+  Position,
   type Node,
   type Edge,
+  type EdgeProps,
+  BaseEdge,
+  getBezierPath,
+  EdgeLabelRenderer,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import StatusBadge from '../../../components/shared/StatusBadge'
@@ -19,12 +25,12 @@ import PipelineCodeTab from './PipelineCodeTab'
 import { mockPipelines } from '../../../data/mockPipelines'
 import type { PipelineStage } from '../../../types'
 
-const typeColors: Record<string, { bg: string; border: string; icon: typeof Database }> = {
-  'data-prep': { bg: 'bg-accent-blue/10', border: 'border-accent-blue', icon: Database },
-  training: { bg: 'bg-accent-purple/10', border: 'border-accent-purple', icon: Brain },
-  evaluation: { bg: 'bg-accent-amber/10', border: 'border-accent-amber', icon: BarChart3 },
-  deployment: { bg: 'bg-accent-green/10', border: 'border-accent-green', icon: Rocket },
-  monitoring: { bg: 'bg-accent-cyan/10', border: 'border-accent-cyan', icon: Activity },
+const typeColors: Record<string, { bg: string; border: string; icon: typeof Database; handleColor: string }> = {
+  'data-prep': { bg: 'bg-accent-blue/10', border: 'border-accent-blue', icon: Database, handleColor: '#3b82f6' },
+  training: { bg: 'bg-accent-purple/10', border: 'border-accent-purple', icon: Brain, handleColor: '#a855f7' },
+  evaluation: { bg: 'bg-accent-amber/10', border: 'border-accent-amber', icon: BarChart3, handleColor: '#f59e0b' },
+  deployment: { bg: 'bg-accent-green/10', border: 'border-accent-green', icon: Rocket, handleColor: '#22c55e' },
+  monitoring: { bg: 'bg-accent-cyan/10', border: 'border-accent-cyan', icon: Activity, handleColor: '#06b6d4' },
 }
 
 function PipelineNode({ data }: { data: { label: string; type: string; status: string; duration: string; resources?: { cpu: string; memory: string; gpu: string }; artifactCount?: number } }) {
@@ -33,18 +39,30 @@ function PipelineNode({ data }: { data: { label: string; type: string; status: s
   const isRunning = data.status === 'Running'
 
   return (
-    <div className={`${style.bg} border-l-4 ${style.border} bg-bg-secondary rounded-lg p-3 w-60 shadow-lg`}>
-      <div className="flex items-center gap-2 mb-1.5">
-        <Icon className="w-4 h-4 text-text-secondary" />
-        <span className="text-sm font-medium text-text-primary flex-1">{data.label}</span>
+    <div className={`border ${data.status === 'Running' ? 'border-accent-blue' : data.status === 'Completed' ? 'border-accent-green/60' : 'border-border-light'} bg-bg-secondary rounded-xl p-4 w-64 shadow-xl relative`}>
+      {/* Colored top accent bar */}
+      <div className={`absolute top-0 left-4 right-4 h-0.5 rounded-b`} style={{ backgroundColor: style.handleColor }} />
+
+      {/* Source handle (top) */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        style={{ background: style.handleColor, width: 10, height: 10, border: '2px solid #111111', top: -5 }}
+      />
+
+      <div className="flex items-center gap-2.5 mb-2">
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${style.handleColor}20` }}>
+          <Icon className="w-3.5 h-3.5" style={{ color: style.handleColor }} />
+        </div>
+        <span className="text-sm font-semibold text-text-primary flex-1">{data.label}</span>
       </div>
-      <div className="flex items-center gap-2 mb-1.5">
+      <div className="flex items-center gap-2 mb-2">
         <StatusBadge status={data.status} />
         {data.duration !== '-' && <span className="text-xs text-text-muted">{data.duration}</span>}
       </div>
       {isRunning && (
-        <div className="h-1 rounded-full bg-bg-tertiary mb-1.5 overflow-hidden">
-          <div className="h-1 rounded-full bg-accent-blue animate-pulse" style={{ width: '65%' }} />
+        <div className="h-1.5 rounded-full bg-bg-tertiary mb-2 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-accent-blue animate-pulse" style={{ width: '65%' }} />
         </div>
       )}
       <div className="flex items-center gap-2 text-[10px] text-text-muted">
@@ -58,11 +76,62 @@ function PipelineNode({ data }: { data: { label: string; type: string; status: s
           </span>
         )}
       </div>
+
+      {/* Target handle (bottom) */}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        style={{ background: style.handleColor, width: 10, height: 10, border: '2px solid #111111', bottom: -5 }}
+      />
     </div>
   )
 }
 
+// Custom edge with label and bright styling
+function CustomEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, style: edgeStyle }: EdgeProps) {
+  const [edgePath, labelX, labelY] = getBezierPath({
+    sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition,
+    curvature: 0.4,
+  })
+
+  const label = (data as { label?: string })?.label
+  const edgeColor = (edgeStyle as { stroke?: string })?.stroke || '#22c55e'
+
+  return (
+    <>
+      <BaseEdge
+        id={id}
+        path={edgePath}
+        style={{
+          stroke: edgeColor,
+          strokeWidth: 2.5,
+          strokeDasharray: '8 4',
+          filter: `drop-shadow(0 0 3px ${edgeColor}40)`,
+        }}
+      />
+      {label && (
+        <EdgeLabelRenderer>
+          <div
+            className="px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap"
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+              pointerEvents: 'all',
+              backgroundColor: `${edgeColor}15`,
+              border: `1px solid ${edgeColor}40`,
+              color: edgeColor,
+            }}
+          >
+            {label}
+          </div>
+        </EdgeLabelRenderer>
+      )}
+    </>
+  )
+}
+
 const nodeTypes = { pipeline: PipelineNode }
+const edgeTypes = { custom: CustomEdge }
 
 const designerTabs = [
   { key: 'designer', label: 'Designer' },
@@ -70,6 +139,18 @@ const designerTabs = [
   { key: 'configuration', label: 'Configuration' },
   { key: 'code', label: 'Code' },
 ]
+
+function getEdgeLabel(parentStatus: string): string {
+  if (parentStatus === 'Completed') return '✓ Completed'
+  if (parentStatus === 'Running') return '⟳ In progress'
+  return 'On success'
+}
+
+function getEdgeColor(parentStatus: string): string {
+  if (parentStatus === 'Completed') return '#22c55e'
+  if (parentStatus === 'Running') return '#3b82f6'
+  return '#22c55e'  // bright green for pending "on success" edges
+}
 
 export default function PipelineDesignerPage() {
   const { id } = useParams()
@@ -99,14 +180,16 @@ export default function PipelineDesignerPage() {
     if (stage.parentIds && stage.parentIds.length > 0) {
       stage.parentIds.forEach((parentId) => {
         const parent = pipeline.stages.find(s => s.id === parentId)
+        const parentStatus = parent?.status || 'Pending'
         edges.push({
           id: `e-${parentId}-${stage.id}`,
           source: parentId,
           target: stage.id,
-          animated: parent?.status === 'Running' || parent?.status === 'Completed',
+          type: 'custom',
+          animated: parentStatus === 'Running',
+          data: { label: getEdgeLabel(parentStatus) },
           style: {
-            stroke: parent?.status === 'Completed' ? '#22c55e' : parent?.status === 'Running' ? '#3b82f6' : '#525252',
-            strokeWidth: 2.5,
+            stroke: getEdgeColor(parentStatus),
           },
         })
       })
@@ -120,8 +203,10 @@ export default function PipelineDesignerPage() {
         id: `e-${stage.id}-${pipeline.stages[i + 1].id}`,
         source: stage.id,
         target: pipeline.stages[i + 1].id,
-        animated: stage.status === 'Running' || stage.status === 'Completed',
-        style: { stroke: stage.status === 'Completed' ? '#22c55e' : stage.status === 'Running' ? '#3b82f6' : '#525252', strokeWidth: 2 },
+        type: 'custom',
+        animated: stage.status === 'Running',
+        data: { label: getEdgeLabel(stage.status) },
+        style: { stroke: getEdgeColor(stage.status) },
       })
     })
   }
@@ -157,13 +242,15 @@ export default function PipelineDesignerPage() {
               nodes={nodes}
               edges={edges}
               nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
               onNodeClick={onNodeClick}
               fitView
               proOptions={{ hideAttribution: true }}
+              defaultEdgeOptions={{ type: 'custom' }}
             >
-              <Background color="#333333" gap={20} />
+              <Background color="#333333" gap={24} size={1.5} />
               <Controls />
-              <MiniMap style={{ backgroundColor: '#111111' }} nodeColor="#262626" maskColor="rgba(0,0,0,0.5)" />
+              <MiniMap style={{ backgroundColor: '#111111' }} nodeColor="#333333" maskColor="rgba(0,0,0,0.5)" />
             </ReactFlow>
           </div>
           {selectedStage && (
