@@ -13,6 +13,21 @@ const statusStyles: Record<string, { dot: string; text: string; bg: string }> = 
   Degraded: { dot: 'bg-accent-red', text: 'text-accent-red', bg: 'bg-accent-red/10' },
   Stopped: { dot: 'bg-text-muted', text: 'text-text-muted', bg: 'bg-bg-tertiary' },
   Idle: { dot: 'bg-text-muted', text: 'text-text-muted', bg: 'bg-bg-tertiary' },
+  // Node statuses
+  Ready: { dot: 'bg-accent-green', text: 'text-accent-green', bg: 'bg-accent-green/10' },
+  NotReady: { dot: 'bg-accent-red', text: 'text-accent-red', bg: 'bg-accent-red/10' },
+  SchedulingDisabled: { dot: 'bg-accent-amber', text: 'text-accent-amber', bg: 'bg-accent-amber/10' },
+  // Alert states
+  firing: { dot: 'bg-accent-red animate-pulse', text: 'text-accent-red', bg: 'bg-accent-red/10' },
+  pending: { dot: 'bg-accent-amber animate-pulse', text: 'text-accent-amber', bg: 'bg-accent-amber/10' },
+  resolved: { dot: 'bg-accent-green', text: 'text-accent-green', bg: 'bg-accent-green/10' },
+  // Alert severities
+  critical: { dot: 'bg-accent-red', text: 'text-accent-red', bg: 'bg-accent-red/10' },
+  warning: { dot: 'bg-accent-amber', text: 'text-accent-amber', bg: 'bg-accent-amber/10' },
+  info: { dot: 'bg-accent-blue', text: 'text-accent-blue', bg: 'bg-accent-blue/10' },
+  // K8s event types
+  Normal: { dot: 'bg-accent-green', text: 'text-accent-green', bg: 'bg-accent-green/10' },
+  Warning: { dot: 'bg-accent-amber', text: 'text-accent-amber', bg: 'bg-accent-amber/10' },
 }
 
 export default function StatusBadge({ status }: { status: string }) {

@@ -7,6 +7,7 @@ import {
   Rocket,
   GitBranch,
   Wrench,
+  Terminal,
   Settings,
   Sparkles,
   ChevronDown,
@@ -27,6 +28,7 @@ const navItems = [
     ],
   },
   { label: 'ML Engineering', path: '/ml-engineering', icon: Wrench },
+  { label: 'Terminal', path: '/terminal', icon: Terminal },
   { label: 'Settings', path: '/settings', icon: Settings },
 ]
 

@@ -135,3 +135,90 @@ export interface Column<T = any> {
   width?: string;
   render?: (row: T) => React.ReactNode;
 }
+
+// Monitoring types
+export interface NodeHealth {
+  name: string;
+  status: 'Ready' | 'NotReady' | 'SchedulingDisabled';
+  cpuPercent: number;
+  memoryPercent: number;
+  diskPercent: number;
+  gpuPercent: number | null;
+  conditions: string[];
+  instanceType: string;
+  age: string;
+}
+
+export interface PodStatusSummary {
+  running: number;
+  pending: number;
+  failed: number;
+  crashLoopBackOff: number;
+  succeeded: number;
+}
+
+export interface GpuMetric {
+  id: string;
+  name: string;
+  model: string;
+  utilizationPercent: number;
+  memoryUsedMiB: number;
+  memoryTotalMiB: number;
+  temperatureC: number;
+  powerW: number;
+  powerCapW: number;
+}
+
+export interface ServiceLatency {
+  service: string;
+  p50Ms: number;
+  p95Ms: number;
+  p99Ms: number;
+  requestsPerSec: number;
+}
+
+export interface LogEntry {
+  timestamp: string;
+  namespace: string;
+  pod: string;
+  container: string;
+  severity: 'info' | 'warn' | 'error' | 'debug';
+  message: string;
+}
+
+export interface KubernetesEvent {
+  type: 'Normal' | 'Warning';
+  reason: string;
+  object: string;
+  message: string;
+  count: number;
+  firstSeen: string;
+  lastSeen: string;
+}
+
+export type AlertSeverity = 'critical' | 'warning' | 'info';
+export type AlertState = 'firing' | 'pending' | 'resolved';
+
+export interface AlertRule {
+  id: string;
+  name: string;
+  severity: AlertSeverity;
+  state: AlertState;
+  expression: string;
+  lastFired: string | null;
+  description: string;
+}
+
+// Terminal types
+export interface TerminalCommand {
+  input: string;
+  output: string;
+  timestamp: string;
+  isError?: boolean;
+}
+
+export interface KubectlMockResponse {
+  pattern: RegExp;
+  response: string | ((match: RegExpMatchArray) => string);
+  isError?: boolean;
+}
