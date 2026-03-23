@@ -81,6 +81,13 @@ export interface Deployment {
 }
 
 // Pipeline types
+export interface StageArtifact {
+  name: string;
+  type: 'input' | 'output';
+  path: string;
+  size?: string;
+}
+
 export interface PipelineStage {
   id: string;
   name: string;
@@ -88,6 +95,48 @@ export interface PipelineStage {
   status: 'Completed' | 'Running' | 'Pending' | 'Failed';
   duration: string;
   position: { x: number; y: number };
+  parentIds?: string[];
+  description?: string;
+  resources?: { cpu: string; memory: string; gpu: string; instanceType?: string };
+  parameters?: Record<string, string | number | boolean>;
+  artifacts?: StageArtifact[];
+  logs?: string[];
+  metrics?: Record<string, number>;
+}
+
+export interface PipelineRunStageStatus {
+  stageId: string;
+  stageName: string;
+  status: 'Completed' | 'Running' | 'Pending' | 'Failed' | 'Skipped';
+  duration: string;
+}
+
+export interface PipelineRun {
+  id: string;
+  runNumber: number;
+  status: 'Running' | 'Completed' | 'Failed' | 'Cancelled';
+  triggeredBy: 'Manual' | 'Schedule' | 'Event' | 'Data Drift';
+  startedAt: string;
+  duration: string;
+  stagesCompleted: number;
+  totalStages: number;
+  metrics?: Record<string, number>;
+  stageStatuses: PipelineRunStageStatus[];
+}
+
+export interface PipelineTrigger {
+  type: 'schedule' | 'event' | 'manual';
+  schedule?: string;
+  eventSource?: string;
+}
+
+export interface PipelineConfig {
+  triggers: PipelineTrigger[];
+  notifications: { channel: string; events: string[] }[];
+  retryPolicy: { maxRetries: number; backoffSeconds: number };
+  timeout: string;
+  concurrency: number;
+  artifactStoragePath: string;
 }
 
 export interface Pipeline {
@@ -98,6 +147,15 @@ export interface Pipeline {
   duration: string;
   stages: PipelineStage[];
   scheduler: 'Argo Workflows' | 'Kubeflow' | 'Kueue';
+  description?: string;
+  tags?: string[];
+  triggerType?: 'Schedule' | 'Manual' | 'Event';
+  successRate?: number;
+  totalRuns?: number;
+  avgDuration?: string;
+  config?: PipelineConfig;
+  runs?: PipelineRun[];
+  yamlDefinition?: string;
 }
 
 // Metrics
