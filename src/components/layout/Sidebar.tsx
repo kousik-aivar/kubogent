@@ -6,20 +6,18 @@ import {
   Rocket,
   GitBranch,
   FlaskConical,
-  Terminal,
   Settings,
   Sparkles,
 } from 'lucide-react'
 
 const navItems = [
-  { label: 'Dashboard',       path: '/dashboard',         icon: LayoutDashboard },
-  { label: 'Clusters',        path: '/clusters',           icon: Server },
-  { label: 'ML Engineering',  path: '/ml-engineering',     icon: FlaskConical },
-  { label: 'Model Catalog',   path: '/aiops/models',       icon: Box },
-  { label: 'Pipelines',       path: '/aiops/pipelines',    icon: GitBranch },
-  { label: 'Inference',       path: '/aiops/inference',    icon: Rocket },
-  { label: 'Terminal',        path: '/terminal',           icon: Terminal },
-  { label: 'Settings',        path: '/settings',           icon: Settings },
+  { label: 'Dashboard',      path: '/dashboard',       icon: LayoutDashboard },
+  { label: 'Studio',         path: '/studio',           icon: FlaskConical },
+  { label: 'Model Catalog',  path: '/aiops/models',     icon: Box },
+  { label: 'Pipelines',      path: '/aiops/pipelines',  icon: GitBranch },
+  { label: 'Inference',      path: '/aiops/inference',  icon: Rocket },
+  { label: 'Clusters',       path: '/clusters',         icon: Server },
+  { label: 'Settings',       path: '/settings',         icon: Settings },
 ]
 
 export default function Sidebar() {

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Check } from 'lucide-react'
 import PageHeader from '../../../components/shared/PageHeader'
 import ModelSourceStep from './create/ModelSourceStep'
@@ -64,8 +64,13 @@ function buildSteps(state: PipelineCreationState): Step[] {
 
 export default function CreatePipelinePage() {
   const navigate = useNavigate()
-  const [stepIndex, setStepIndex] = useState(0)
-  const [state, setState] = useState<PipelineCreationState>(defaultState)
+  const location = useLocation()
+  const preselectedModelId = (location.state as { modelId?: string } | null)?.modelId ?? null
+  const [stepIndex, setStepIndex] = useState(preselectedModelId ? 1 : 0)
+  const [state, setState] = useState<PipelineCreationState>({
+    ...defaultState,
+    modelId: preselectedModelId,
+  })
   const [completed, setCompleted] = useState(false)
 
   const steps = useMemo(() => buildSteps(state), [state])

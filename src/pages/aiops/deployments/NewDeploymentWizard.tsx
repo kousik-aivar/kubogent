@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import StepWizard from '../../../components/shared/StepWizard'
 import PageHeader from '../../../components/shared/PageHeader'
@@ -100,9 +100,11 @@ function ReviewStep({ modelId, clusterId, deploymentPath, pipelineConfig, infere
 }
 
 export default function NewDeploymentWizard() {
-  const [step, setStep] = useState(0)
+  const location = useLocation()
+  const preselectedModelId = (location.state as { modelId?: string } | null)?.modelId ?? null
+  const [step, setStep] = useState(preselectedModelId ? 1 : 0)
   const [completed, setCompleted] = useState(false)
-  const [modelId, setModelId] = useState<string | null>(null)
+  const [modelId, setModelId] = useState<string | null>(preselectedModelId)
   const [clusterId, setClusterId] = useState<string | null>(null)
   const [deploymentPath, setDeploymentPath] = useState<DeploymentPath>(null)
   const [inferenceEngine, setInferenceEngine] = useState<InferenceEngine | null>(null)
