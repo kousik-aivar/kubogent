@@ -12,7 +12,7 @@ import {
 
 const navItems = [
   { label: 'Dashboard',      path: '/dashboard',       icon: LayoutDashboard },
-  { label: 'Studio',         path: '/studio',           icon: FlaskConical },
+  { label: 'Workbench',      path: '/workbench',        icon: FlaskConical },
   { label: 'Model Catalog',  path: '/aiops/models',     icon: Box },
   { label: 'Pipelines',      path: '/aiops/pipelines',  icon: GitBranch },
   { label: 'Inference',      path: '/aiops/inference',  icon: Rocket },
