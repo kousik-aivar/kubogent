@@ -11,7 +11,7 @@ interface TabGroupProps {
 
 export default function TabGroup({ tabs, activeTab, onChange }: TabGroupProps) {
   return (
-    <div className="flex border-b border-border mb-6">
+    <div className="sticky top-0 z-20 -mx-6 px-6 bg-bg-primary flex border-b border-border mb-6">
       {tabs.map((tab) => (
         <button
           key={tab.key}

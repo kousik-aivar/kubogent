@@ -133,7 +133,7 @@ export default function CreatePipelinePage() {
       <PageHeader title="Create Pipeline" description="Build a full model lifecycle pipeline end-to-end." />
 
       {/* Step indicator */}
-      <div className="flex items-center mb-8 overflow-x-auto pb-2">
+      <div className="sticky top-0 z-10 bg-bg-primary pt-2 pb-4 mb-4 flex items-center overflow-x-auto">
         {steps.map((step, i) => (
           <div key={step.key} className="flex items-center flex-shrink-0">
             <div className="flex items-center gap-2">
