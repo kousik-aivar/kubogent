@@ -46,8 +46,9 @@ function App() {
         <Route path="/aiops/pipelines" element={<PipelinesListPage />} />
         <Route path="/aiops/pipelines/create" element={<CreatePipelinePage />} />
         <Route path="/aiops/pipelines/:id" element={<PipelineDesignerPage />} />
-        <Route path="/studio" element={<StudioPage />} />
-        <Route path="/ml-engineering" element={<Navigate to="/studio" replace />} />
+        <Route path="/workbench" element={<StudioPage />} />
+        <Route path="/studio" element={<Navigate to="/workbench" replace />} />
+        <Route path="/ml-engineering" element={<Navigate to="/workbench" replace />} />
         <Route path="/terminal" element={<TerminalPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>

@@ -248,7 +248,7 @@ function NotebookWorkspace({ notebook, onBack }: { notebook: MockNotebook; onBac
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Studio
+            <ArrowLeft className="w-4 h-4" /> Workbench
           </button>
           <span className="text-text-muted">/</span>
           <h1 className="text-lg font-semibold text-text-primary font-mono">{notebook.name}</h1>
@@ -302,7 +302,7 @@ const categoryColors: Record<string, string> = {
   'traditional-ml': 'bg-accent-amber/10 text-accent-amber',
 }
 
-export default function StudioPage() {
+export default function WorkbenchPage() {
   const location = useLocation()
   const [notebooks, setNotebooks] = useState<MockNotebook[]>(mockNotebooks)
   const [openNotebook, setOpenNotebook] = useState<MockNotebook | null>(null)
@@ -347,7 +347,7 @@ export default function StudioPage() {
     <div>
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-text-primary">Studio</h1>
+          <h1 className="text-2xl font-semibold text-text-primary">Workbench</h1>
           <p className="text-sm text-text-secondary mt-1">Experiment, build, and publish models — before pushing to a production pipeline.</p>
         </div>
         <button
