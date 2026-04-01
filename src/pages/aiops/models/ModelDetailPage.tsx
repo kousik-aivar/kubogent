@@ -23,7 +23,7 @@ export default function ModelDetailPage() {
           <h1 className="text-2xl font-semibold text-text-primary">{model.name}</h1>
           <StatusBadge status={model.status} />
         </div>
-        <button onClick={() => navigate('/aiops/deployments/new')} className="flex items-center gap-2 px-4 py-2 bg-accent-green text-white rounded-lg text-sm font-medium hover:bg-accent-green/90 transition-colors">
+        <button onClick={() => navigate('/aiops/inference/new')} className="flex items-center gap-2 px-4 py-2 bg-accent-green text-white rounded-lg text-sm font-medium hover:bg-accent-green/90 transition-colors">
           <Rocket className="w-4 h-4" /> Deploy Model
         </button>
       </div>
@@ -101,7 +101,7 @@ export default function ModelDetailPage() {
           <h3 className="text-sm font-medium text-text-primary mb-4">Active Deployments</h3>
           <div className="space-y-2">
             {deployments.map((dep) => (
-              <Link key={dep.id} to={`/aiops/deployments/${dep.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-bg-tertiary transition-colors">
+              <Link key={dep.id} to={`/aiops/inference/${dep.id}`} className="flex items-center justify-between p-3 rounded-lg hover:bg-bg-tertiary transition-colors">
                 <div className="flex items-center gap-3">
                   <StatusBadge status={dep.status} />
                   <span className="text-sm text-text-primary">{dep.clusterName}</span>

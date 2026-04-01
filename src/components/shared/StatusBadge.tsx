@@ -28,6 +28,10 @@ const statusStyles: Record<string, { dot: string; text: string; bg: string }> = 
   // K8s event types
   Normal: { dot: 'bg-accent-green', text: 'text-accent-green', bg: 'bg-accent-green/10' },
   Warning: { dot: 'bg-accent-amber', text: 'text-accent-amber', bg: 'bg-accent-amber/10' },
+  // Approval states
+  Approved: { dot: 'bg-accent-green', text: 'text-accent-green', bg: 'bg-accent-green/10' },
+  Rejected: { dot: 'bg-accent-red', text: 'text-accent-red', bg: 'bg-accent-red/10' },
+  'Pending Approval': { dot: 'bg-accent-amber animate-pulse', text: 'text-accent-amber', bg: 'bg-accent-amber/10' },
 }
 
 export default function StatusBadge({ status }: { status: string }) {

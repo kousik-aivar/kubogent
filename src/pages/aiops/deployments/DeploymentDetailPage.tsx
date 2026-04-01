@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Brain, GitBranch, Timer, Zap, CheckCircle, Cpu } from 'lucide-react'
 import TabGroup from '../../../components/shared/TabGroup'
 import StatusBadge from '../../../components/shared/StatusBadge'
 import MetricCard from '../../../components/shared/MetricCard'
 import DeploymentLineageTab from './DeploymentLineageTab'
 import { mockDeployments } from '../../../data/mockDeployments'
+import { mockTrainingJobs } from '../../../data/mockTrainingJobs'
 import { deploymentLatencyTimeSeries } from '../../../data/mockMetrics'
-import { Timer, Zap, CheckCircle, Cpu, GitBranch } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 const tabs = [
@@ -42,8 +42,8 @@ export default function DeploymentDetailPage() {
 
   return (
     <div>
-      <Link to="/aiops/deployments" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary mb-4">
-        <ArrowLeft className="w-4 h-4" /> Back to Deployments
+      <Link to="/aiops/inference" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary mb-4">
+        <ArrowLeft className="w-4 h-4" /> Back to Inference
       </Link>
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -71,6 +71,69 @@ export default function DeploymentDetailPage() {
           </div>
         </div>
       </div>
+
+      {dep.deploymentPath === 'pipeline' && dep.pipelineId && dep.pipelineRunId && (() => {
+        const trainingJob = mockTrainingJobs.find(
+          (j) => j.pipelineId === dep.pipelineId && j.runId === dep.pipelineRunId && j.stageType === 'training'
+        )
+        const evalJob = mockTrainingJobs.find(
+          (j) => j.pipelineId === dep.pipelineId && j.runId === dep.pipelineRunId && j.stageType === 'evaluation'
+        )
+        if (!trainingJob) return null
+        return (
+          <div className="mb-6 bg-accent-purple/5 border border-accent-purple/20 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Brain className="w-4 h-4 text-accent-purple" />
+              <span className="text-sm font-medium text-accent-purple">Training Provenance</span>
+              <span className="text-xs text-text-muted ml-1">from {dep.pipelineRunId}</span>
+            </div>
+            <div className="flex items-center gap-6 flex-wrap">
+              {trainingJob.metrics?.final_loss !== undefined && (
+                <div>
+                  <p className="text-xs text-text-muted mb-0.5">Final Loss</p>
+                  <p className="text-sm font-medium text-text-primary font-mono">{trainingJob.metrics.final_loss.toFixed(3)}</p>
+                </div>
+              )}
+              {trainingJob.metrics?.bleu_score !== undefined && (
+                <div>
+                  <p className="text-xs text-text-muted mb-0.5">BLEU Score</p>
+                  <p className="text-sm font-medium text-text-primary font-mono">{trainingJob.metrics.bleu_score.toFixed(2)}</p>
+                </div>
+              )}
+              {evalJob?.metrics?.accuracy !== undefined && (
+                <div>
+                  <p className="text-xs text-text-muted mb-0.5">Eval Accuracy</p>
+                  <p className="text-sm font-medium text-text-primary font-mono">{(evalJob.metrics.accuracy * 100).toFixed(1)}%</p>
+                </div>
+              )}
+              {trainingJob.metrics?.gpu_utilization !== undefined && (
+                <div>
+                  <p className="text-xs text-text-muted mb-0.5">GPU Utilization</p>
+                  <p className="text-sm font-medium text-text-primary font-mono">{trainingJob.metrics.gpu_utilization}%</p>
+                </div>
+              )}
+              <div>
+                <p className="text-xs text-text-muted mb-0.5">Training Duration</p>
+                <p className="text-sm font-medium text-text-primary">{trainingJob.duration}</p>
+              </div>
+              {dep.modelVersion && (
+                <div>
+                  <p className="text-xs text-text-muted mb-0.5">Model Version</p>
+                  <p className="text-sm font-medium text-accent-blue">{dep.modelVersion}</p>
+                </div>
+              )}
+              <div className="ml-auto">
+                <Link
+                  to={`/aiops/pipelines/${dep.pipelineId}`}
+                  className="flex items-center gap-1.5 text-xs text-accent-purple hover:underline"
+                >
+                  <GitBranch className="w-3 h-3" /> View pipeline run
+                </Link>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {dep.status === 'Running' && (
         <div className="grid grid-cols-4 gap-4 mb-6">

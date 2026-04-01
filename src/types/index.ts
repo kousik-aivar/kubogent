@@ -46,6 +46,68 @@ export interface Cluster {
 }
 
 // Model types
+export type ModelCategory =
+  | 'llm'
+  | 'slm'
+  | 'code'
+  | 'embedding'
+  | 'stt'
+  | 'tts'
+  | 'vision'
+  | 'video-gen'
+  | 'object-detect'
+  | 'traditional-ml'
+  | 'diffusion';
+
+export const MODEL_CATEGORY_LABELS: Record<ModelCategory, string> = {
+  llm: 'LLM',
+  slm: 'SLM',
+  code: 'Code',
+  embedding: 'Embedding',
+  stt: 'STT',
+  tts: 'TTS',
+  vision: 'Vision',
+  'video-gen': 'Video Gen',
+  'object-detect': 'Object Detection',
+  'traditional-ml': 'Traditional ML',
+  diffusion: 'Diffusion',
+};
+
+export const TRAINING_METHODS: Record<ModelCategory, string[]> = {
+  llm: ['LoRA', 'QLoRA', 'Full Fine-tune', 'SFT', 'DPO', 'RLHF'],
+  slm: ['LoRA', 'QLoRA', 'Full Fine-tune', 'SFT', 'DPO'],
+  code: ['LoRA', 'QLoRA', 'Full Fine-tune', 'SFT'],
+  embedding: ['Sequence Classification', 'NER', 'SimCSE', 'Contrastive'],
+  stt: ['CTC Fine-tune', 'Seq2Seq Fine-tune', 'Adapter'],
+  tts: ['Speaker Adaptation', 'VITS Fine-tune', 'StyleTTS2'],
+  vision: ['LoRA', 'Full Fine-tune', 'Linear Probe'],
+  'video-gen': ['LoRA (Video)', 'Full Fine-tune'],
+  'object-detect': ['Full Fine-tune', 'Transfer Learning'],
+  'traditional-ml': ['Retrain', 'Incremental Learning', 'Hyperparameter Sweep'],
+  diffusion: ['DreamBooth', 'LoRA', 'Full Fine-tune'],
+};
+
+export type InferenceEngine = 'vLLM' | 'Ray Serve' | 'Triton' | 'TensorRT-LLM';
+
+export const INFERENCE_ENGINE_RECOMMENDATIONS: Record<ModelCategory, InferenceEngine[]> = {
+  llm: ['vLLM', 'Ray Serve', 'TensorRT-LLM'],
+  slm: ['vLLM', 'Ray Serve', 'TensorRT-LLM'],
+  code: ['vLLM', 'Ray Serve', 'TensorRT-LLM'],
+  embedding: ['Triton', 'Ray Serve'],
+  stt: ['Triton', 'Ray Serve'],
+  tts: ['Triton', 'Ray Serve'],
+  vision: ['Triton', 'Ray Serve'],
+  'video-gen': ['Ray Serve', 'Triton'],
+  'object-detect': ['Triton', 'Ray Serve'],
+  'traditional-ml': ['Triton', 'Ray Serve'],
+  diffusion: ['Ray Serve', 'Triton'],
+};
+
+export interface InferenceEngineConfig {
+  engine: InferenceEngine;
+  params: Record<string, string | number | boolean>;
+}
+
 export interface ModelVersion {
   version: string;
   source: string;
@@ -66,6 +128,7 @@ export interface Model {
   lastUpdated: string;
   deploymentCount: number;
   description: string;
+  modelCategory: ModelCategory;
   versions?: ModelVersion[];
 }
 
@@ -105,8 +168,8 @@ export interface StageArtifact {
 export interface PipelineStage {
   id: string;
   name: string;
-  type: 'data-prep' | 'training' | 'evaluation' | 'deployment' | 'monitoring';
-  status: 'Completed' | 'Running' | 'Pending' | 'Failed';
+  type: 'data-prep' | 'training' | 'evaluation' | 'deployment' | 'monitoring' | 'approval' | 'model-source';
+  status: 'Completed' | 'Running' | 'Pending' | 'Failed' | 'Approved' | 'Rejected';
   duration: string;
   position: { x: number; y: number };
   parentIds?: string[];
@@ -281,6 +344,81 @@ export interface AlertRule {
   expression: string;
   lastFired: string | null;
   description: string;
+}
+
+// Training job types
+export interface TrainingJob {
+  id: string;
+  pipelineId: string;
+  pipelineName: string;
+  runId: string;
+  runNumber: number;
+  stageName: string;
+  stageType: 'training' | 'evaluation' | 'deployment';
+  status: 'Running' | 'Completed' | 'Failed';
+  startedAt: string;
+  duration: string;
+  modelId: string;
+  modelName: string;
+  modelVersionProduced?: string;
+  resources: { gpu: string; cpu: string; memory: string };
+  metrics?: Record<string, number>;
+}
+
+export interface LifecycleEvent {
+  id: string;
+  type: 'import' | 'training' | 'evaluation' | 'approval' | 'deployment' | 'inference' | 'failure';
+  title: string;
+  description: string;
+  timestamp: string;
+  runId?: string;
+  pipelineId?: string;
+  deploymentId?: string;
+  modelVersion?: string;
+  metrics?: Record<string, number>;
+}
+
+// AIVA types
+export interface AivaSuggestion {
+  id: string;
+  type: 'recommendation' | 'warning' | 'insight' | 'action';
+  title: string;
+  body: string;
+  accent: 'blue' | 'green' | 'amber' | 'red' | 'purple';
+  actionLabel?: string;
+}
+
+export interface AivaPageContext {
+  page: string;
+  entityName?: string;
+  suggestions: AivaSuggestion[];
+}
+
+// Pipeline creation wizard state
+export type PipelineCreationPath = 'training' | 'direct' | null;
+
+export type ApprovalMode = 'manual' | 'automated';
+
+export interface EvalApprovalConfig {
+  metrics: string[];
+  thresholds: Record<string, number>;
+  approvalMode: ApprovalMode;
+  notificationChannel: string;
+}
+
+export interface PipelineCreationState {
+  modelId: string | null;
+  modelSource: 'catalog' | 'import' | null;
+  pipelinePath: PipelineCreationPath;
+  trainingMethod: string | null;
+  dataS3Path: string;
+  trainValSplit: number;
+  evalApproval: EvalApprovalConfig;
+  inferenceEngine: InferenceEngine | null;
+  inferenceEngineConfig: InferenceEngineConfig | null;
+  clusterId: string | null;
+  pipelineName: string;
+  scheduler: 'Argo Workflows' | 'Kubeflow' | 'Kueue';
 }
 
 // Terminal types

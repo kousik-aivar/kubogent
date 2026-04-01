@@ -40,21 +40,21 @@ export default function DeploymentsListPage() {
   return (
     <div>
       <PageHeader
-        title="Deployments"
-        description="Manage model deployments across clusters"
+        title="Inference"
+        description="Live model serving endpoints across clusters"
         actions={
-          <button onClick={() => navigate('/aiops/deployments/new')} className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-medium hover:bg-accent-blue/90 transition-colors">
-            <Plus className="w-4 h-4" /> New Deployment
+          <button onClick={() => navigate('/aiops/inference/new')} className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-medium hover:bg-accent-blue/90 transition-colors">
+            <Plus className="w-4 h-4" /> New Inference
           </button>
         }
       />
       <div className="mb-4 max-w-sm">
-        <SearchInput value={search} onChange={setSearch} placeholder="Search deployments..." />
+        <SearchInput value={search} onChange={setSearch} placeholder="Search inference..." />
       </div>
       <DataTable
         columns={columns}
         data={filtered}
-        onRowClick={(row) => navigate(`/aiops/deployments/${(row as unknown as Deployment).id}`)}
+        onRowClick={(row) => navigate(`/aiops/inference/${(row as unknown as Deployment).id}`)}
       />
     </div>
   )

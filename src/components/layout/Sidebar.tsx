@@ -24,7 +24,7 @@ const navItems = [
     children: [
       { label: 'Model Catalog', path: '/aiops/models', icon: Box },
       { label: 'Pipelines', path: '/aiops/pipelines', icon: GitBranch },
-      { label: 'Deployments', path: '/aiops/deployments', icon: Rocket },
+      { label: 'Inference', path: '/aiops/inference', icon: Rocket },
     ],
   },
   { label: 'ML Engineering', path: '/ml-engineering', icon: Wrench },
