@@ -20,6 +20,8 @@ import StatusBadge from '../../../components/shared/StatusBadge'
 import TabGroup from '../../../components/shared/TabGroup'
 import StageDetailPanel from './StageDetailPanel'
 import PipelineRunsTab from './PipelineRunsTab'
+import PipelineJobsTab from './PipelineJobsTab'
+import PipelineLifecycleTab from './PipelineLifecycleTab'
 import PipelineConfigTab from './PipelineConfigTab'
 import PipelineCodeTab from './PipelineCodeTab'
 import { mockPipelines } from '../../../data/mockPipelines'
@@ -135,6 +137,8 @@ const edgeTypes = { custom: CustomEdge }
 
 const designerTabs = [
   { key: 'designer', label: 'Designer' },
+  { key: 'jobs', label: 'Jobs' },
+  { key: 'lifecycle', label: 'Lifecycle' },
   { key: 'runs', label: 'Runs' },
   { key: 'configuration', label: 'Configuration' },
   { key: 'code', label: 'Code' },
@@ -157,6 +161,10 @@ export default function PipelineDesignerPage() {
   const pipeline = mockPipelines.find((p) => p.id === id)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('designer')
+
+  const onNodeClick = useCallback((_: unknown, node: Node) => {
+    setSelectedNode(node.id)
+  }, [setSelectedNode])
 
   if (!pipeline) return <div className="text-text-muted">Pipeline not found</div>
 
@@ -213,10 +221,6 @@ export default function PipelineDesignerPage() {
 
   const selectedStage: PipelineStage | undefined = pipeline.stages.find((s) => s.id === selectedNode)
 
-  const onNodeClick = useCallback((_: unknown, node: Node) => {
-    setSelectedNode(node.id)
-  }, [])
-
   return (
     <div>
       <Link to="/aiops/pipelines" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary mb-4">
@@ -259,6 +263,8 @@ export default function PipelineDesignerPage() {
         </div>
       )}
 
+      {activeTab === 'jobs' && <PipelineJobsTab pipeline={pipeline} />}
+      {activeTab === 'lifecycle' && <PipelineLifecycleTab pipeline={pipeline} />}
       {activeTab === 'runs' && <PipelineRunsTab pipeline={pipeline} />}
       {activeTab === 'configuration' && <PipelineConfigTab pipeline={pipeline} />}
       {activeTab === 'code' && <PipelineCodeTab pipeline={pipeline} />}

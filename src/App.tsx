@@ -13,6 +13,7 @@ import DeploymentDetailPage from './pages/aiops/deployments/DeploymentDetailPage
 import NewDeploymentWizard from './pages/aiops/deployments/NewDeploymentWizard'
 import PipelinesListPage from './pages/aiops/pipelines/PipelinesListPage'
 import PipelineDesignerPage from './pages/aiops/pipelines/PipelineDesignerPage'
+import CreatePipelinePage from './pages/aiops/pipelines/CreatePipelinePage'
 import MLEngineeringPage from './pages/ml-engineering/MLEngineeringPage'
 import TerminalPage from './pages/terminal/TerminalPage'
 import SettingsPage from './pages/settings/SettingsPage'
@@ -36,10 +37,14 @@ function App() {
         <Route path="/clusters/:id" element={<ClusterDetailPage />} />
         <Route path="/aiops/models" element={<ModelsListPage />} />
         <Route path="/aiops/models/:id" element={<ModelDetailPage />} />
-        <Route path="/aiops/deployments" element={<DeploymentsListPage />} />
-        <Route path="/aiops/deployments/new" element={<NewDeploymentWizard />} />
-        <Route path="/aiops/deployments/:id" element={<DeploymentDetailPage />} />
+        <Route path="/aiops/inference" element={<DeploymentsListPage />} />
+        <Route path="/aiops/inference/new" element={<NewDeploymentWizard />} />
+        <Route path="/aiops/inference/:id" element={<DeploymentDetailPage />} />
+        {/* Legacy redirect for old deployment URLs */}
+        <Route path="/aiops/deployments" element={<Navigate to="/aiops/inference" replace />} />
+        <Route path="/aiops/deployments/:id" element={<Navigate to="/aiops/inference" replace />} />
         <Route path="/aiops/pipelines" element={<PipelinesListPage />} />
+        <Route path="/aiops/pipelines/create" element={<CreatePipelinePage />} />
         <Route path="/aiops/pipelines/:id" element={<PipelineDesignerPage />} />
         <Route path="/ml-engineering" element={<MLEngineeringPage />} />
         <Route path="/terminal" element={<TerminalPage />} />

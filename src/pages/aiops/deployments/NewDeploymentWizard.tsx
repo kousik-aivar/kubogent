@@ -166,10 +166,10 @@ export default function NewDeploymentWizard() {
 
   return (
     <div>
-      <Link to="/aiops/deployments" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary mb-4">
-        <ArrowLeft className="w-4 h-4" /> Back to Deployments
+      <Link to="/aiops/inference" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary mb-4">
+        <ArrowLeft className="w-4 h-4" /> Back to Inference
       </Link>
-      <PageHeader title="New Deployment" description="Deploy a model to a cluster" />
+      <PageHeader title="New Inference Deployment" description="Deploy a model to a cluster for serving" />
       <StepWizard
         steps={steps}
         currentStep={step}

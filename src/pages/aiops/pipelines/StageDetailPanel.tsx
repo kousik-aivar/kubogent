@@ -18,11 +18,11 @@ export default function StageDetailPanel({ stage, onClose }: { stage: PipelineSt
   const [activeSubTab, setActiveSubTab] = useState('Overview')
   const Icon = typeIcons[stage.type] || Database
 
-  // Generate mock training loss curve for training stages
+  // Generate mock training loss curve for training stages (deterministic jitter)
   const lossCurve = stage.type === 'training' && stage.metrics?.current_loss
     ? Array.from({ length: 20 }, (_, i) => ({
         step: (i + 1) * 200,
-        loss: 1.8 * Math.exp(-0.08 * (i + 1)) + 0.15 + Math.random() * 0.05,
+        loss: 1.8 * Math.exp(-0.08 * (i + 1)) + 0.15 + (i % 5) * 0.01,
       }))
     : null
 

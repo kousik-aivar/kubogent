@@ -5,7 +5,6 @@ import PageHeader from '../../../components/shared/PageHeader'
 import DataTable from '../../../components/shared/DataTable'
 import SearchInput from '../../../components/shared/SearchInput'
 import StatusBadge from '../../../components/shared/StatusBadge'
-import CreatePipelineModal from './CreatePipelineModal'
 import { mockPipelines } from '../../../data/mockPipelines'
 import type { Pipeline, Column } from '../../../types'
 
@@ -47,7 +46,6 @@ const columns: Column<Pipeline>[] = [
 export default function PipelinesListPage() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
-  const [showCreate, setShowCreate] = useState(false)
 
   const filteredPipelines = mockPipelines.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
@@ -60,7 +58,7 @@ export default function PipelinesListPage() {
         description="Manage ML training and deployment pipelines"
         actions={
           <button
-            onClick={() => setShowCreate(true)}
+            onClick={() => navigate('/aiops/pipelines/create')}
             className="flex items-center gap-2 px-4 py-2 bg-accent-blue text-white rounded-lg text-sm font-medium hover:bg-accent-blue/90 transition-colors"
           >
             <Plus className="w-4 h-4" /> Create Pipeline
@@ -77,8 +75,6 @@ export default function PipelinesListPage() {
         data={filteredPipelines}
         onRowClick={(row) => navigate(`/aiops/pipelines/${(row as unknown as Pipeline).id}`)}
       />
-
-      {showCreate && <CreatePipelineModal onClose={() => setShowCreate(false)} />}
     </div>
   )
 }

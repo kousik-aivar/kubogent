@@ -84,10 +84,10 @@ export default function MonitoringTab() {
     <div className="space-y-6">
       {/* Metric cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="CPU Usage" value="72" suffix="%" icon={Cpu} trend="+3.2%" trendDirection="up" />
-        <MetricCard label="Memory Usage" value="68" suffix="%" icon={HardDrive} trend="-1.5%" trendDirection="down" />
-        <MetricCard label="Pod Count" value="176" icon={Box} trend="+8" trendDirection="up" />
-        <MetricCard label="Network I/O" value="2.4" suffix=" Gbps" icon={Network} trend="+12%" trendDirection="up" />
+        <MetricCard label="CPU Usage" value="72" suffix="%" icon={Cpu} trend={3.2} trendDirection="up" />
+        <MetricCard label="Memory Usage" value="68" suffix="%" icon={HardDrive} trend={-1.5} trendDirection="down" />
+        <MetricCard label="Pod Count" value="176" icon={Box} trend={8} trendDirection="up" />
+        <MetricCard label="Network I/O" value="2.4" suffix=" Gbps" icon={Network} trend={12} trendDirection="up" />
       </div>
 
       {/* CPU & Memory time series */}
