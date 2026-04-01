@@ -10,13 +10,16 @@ const breadcrumbMap: Record<string, string> = {
   create: 'Create',
   pipelines: 'Pipelines',
   'ml-engineering': 'ML Engineering',
+  workspace: 'Workspace',
+  experiments: 'Experiments',
   settings: 'Settings',
   new: 'New',
 }
 
 export default function Topbar() {
   const location = useLocation()
-  const segments = location.pathname.split('/').filter(Boolean)
+  // Filter out 'aiops' — it's a URL namespace, not a meaningful breadcrumb
+  const segments = location.pathname.split('/').filter((s) => Boolean(s) && s !== 'aiops')
 
   return (
     <header className="h-16 bg-bg-secondary border-b border-border flex items-center justify-between px-6">
