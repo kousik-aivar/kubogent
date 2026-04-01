@@ -434,3 +434,33 @@ export interface KubectlMockResponse {
   response: string | ((match: RegExpMatchArray) => string);
   isError?: boolean;
 }
+
+// ML Engineering — Notebook Server types
+export interface NotebookServer {
+  id: string;
+  name: string;
+  clusterId: string;
+  clusterName: string;
+  status: 'Running' | 'Provisioning' | 'Stopped' | 'Failed';
+  url: string;
+  image: string;
+  resources: { cpu: string; memory: string; gpu: string };
+  createdAt: string;
+  lastActive: string;
+  createdBy: string;
+}
+
+export interface ExperimentRun {
+  id: string;
+  name: string;
+  modelName: string;
+  modelCategory: ModelCategory;
+  status: 'Completed' | 'Running' | 'Failed';
+  metrics: Record<string, number>;
+  hyperparams: { learningRate: string; batchSize: number; epochs: number; warmupSteps: number };
+  gpuHours: number;
+  startedAt: string;
+  duration: string;
+  notebookId?: string;
+  isBest?: boolean;
+}
