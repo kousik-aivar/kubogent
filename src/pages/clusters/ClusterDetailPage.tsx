@@ -10,14 +10,20 @@ import { gpuMemoryPerNode } from '../../data/mockMetrics'
 import type { NodeGroup, Column } from '../../types'
 import { Server, Cpu, HardDrive, Clock, DollarSign } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import MonitoringTab from './MonitoringTab'
+import LogsEventsTab from './LogsEventsTab'
+import KubectlTerminal from '../../components/terminal/KubectlTerminal'
 
 const tabs = [
   { key: 'overview', label: 'Overview' },
   { key: 'nodes', label: 'Node Groups' },
   { key: 'gpu', label: 'GPU Utilization' },
+  { key: 'monitoring', label: 'Monitoring' },
+  { key: 'logs', label: 'Logs & Events' },
   { key: 'network', label: 'Networking' },
   { key: 'security', label: 'Security' },
   { key: 'autoscaling', label: 'Autoscaling' },
+  { key: 'terminal', label: 'Terminal' },
 ]
 
 const nodeGroupColumns: Column<NodeGroup>[] = [
@@ -120,6 +126,10 @@ export default function ClusterDetailPage() {
         </div>
       )}
 
+      {activeTab === 'monitoring' && <MonitoringTab />}
+
+      {activeTab === 'logs' && <LogsEventsTab />}
+
       {activeTab === 'network' && (
         <div className="bg-bg-secondary border border-border rounded-xl p-5">
           <h3 className="text-sm font-medium text-text-primary mb-4">Networking Configuration</h3>
@@ -147,6 +157,10 @@ export default function ClusterDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {activeTab === 'terminal' && (
+        <KubectlTerminal clusterName={cluster.name} />
       )}
 
       {activeTab === 'autoscaling' && (
