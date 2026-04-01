@@ -1,13 +1,15 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Sparkles } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import StepWizard from '../../../components/shared/StepWizard'
 import PageHeader from '../../../components/shared/PageHeader'
 import StatusBadge from '../../../components/shared/StatusBadge'
 import DeploymentPathStep, { type DeploymentPath } from './DeploymentPathStep'
 import PipelineConfigStep, { type PipelineDeployConfig } from './PipelineConfigStep'
+import InferenceEngineStep from '../pipelines/create/InferenceEngineStep'
 import { mockModels } from '../../../data/mockModels'
 import { mockClusters } from '../../../data/mockClusters'
+import type { InferenceEngine, InferenceEngineConfig } from '../../../types'
 
 function SelectModelStep({ selected, onSelect }: { selected: string | null; onSelect: (id: string) => void }) {
   const available = mockModels.filter((m) => m.status === 'Available')
@@ -46,56 +48,14 @@ function SelectClusterStep({ selected, onSelect }: { selected: string | null; on
   )
 }
 
-function IntelligencePanel({ onApply, deploymentPath, pipelineConfig }: { onApply: () => void; deploymentPath: DeploymentPath; pipelineConfig: PipelineDeployConfig }) {
-  const isPipeline = deploymentPath === 'pipeline'
-  return (
-    <div className="border-2 border-accent-purple/30 rounded-xl p-6 bg-gradient-to-br from-accent-purple/5 to-transparent">
-      <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-5 h-5 text-accent-purple" />
-        <h3 className="text-lg font-medium text-accent-purple">Kubogent Intelligence</h3>
-      </div>
-      <p className="text-sm text-text-secondary mb-4">
-        {isPipeline
-          ? 'Based on model size (70B) and pipeline configuration, here are our recommendations:'
-          : 'Based on the model size (70B parameters) and target latency of <500ms, here are our recommendations:'}
-      </p>
-      <div className={`grid ${isPipeline ? 'grid-cols-2 lg:grid-cols-5' : 'grid-cols-2 lg:grid-cols-4'} gap-3 mb-4`}>
-        {isPipeline && (
-          <div className="bg-bg-secondary border border-border rounded-lg p-3">
-            <div className="text-xs text-text-muted mb-1">Pipeline Duration</div>
-            <div className="text-sm font-medium text-text-primary">~2h 10m</div>
-            <div className="text-xs text-accent-cyan mt-1">{pipelineConfig.templateId === 'tpl-1' ? '6 stages' : '4 stages'}</div>
-          </div>
-        )}
-        <div className="bg-bg-secondary border border-border rounded-lg p-3">
-          <div className="text-xs text-text-muted mb-1">Recommended GPU</div>
-          <div className="text-sm font-medium text-text-primary">NVIDIA A100</div>
-          <div className="text-xs text-accent-green mt-1">92% confidence</div>
-        </div>
-        <div className="bg-bg-secondary border border-border rounded-lg p-3">
-          <div className="text-xs text-text-muted mb-1">Optimal Replicas</div>
-          <div className="text-sm font-medium text-text-primary">4 replicas</div>
-          <div className="text-xs text-accent-green mt-1">For 25 concurrent users</div>
-        </div>
-        <div className="bg-bg-secondary border border-border rounded-lg p-3">
-          <div className="text-xs text-text-muted mb-1">Est. Latency</div>
-          <div className="text-sm font-medium text-text-primary">410ms TTFT</div>
-          <div className="text-xs text-accent-amber mt-1">P95: 520ms</div>
-        </div>
-        <div className="bg-bg-secondary border border-border rounded-lg p-3">
-          <div className="text-xs text-text-muted mb-1">Est. Cost</div>
-          <div className="text-sm font-medium text-text-primary">{isPipeline ? '$52.80/hr' : '$47.20/hr'}</div>
-          <div className="text-xs text-accent-blue mt-1">{isPipeline ? 'incl. pipeline GPU' : '$0.41/user/hr'}</div>
-        </div>
-      </div>
-      <button onClick={onApply} className="px-4 py-2 bg-accent-purple text-white rounded-lg text-sm font-medium hover:bg-accent-purple/90 transition-colors">
-        Apply Recommendations
-      </button>
-    </div>
-  )
-}
-
-function ReviewStep({ modelId, clusterId, deploymentPath, pipelineConfig }: { modelId: string | null; clusterId: string | null; deploymentPath: DeploymentPath; pipelineConfig: PipelineDeployConfig }) {
+function ReviewStep({ modelId, clusterId, deploymentPath, pipelineConfig, inferenceEngine, engineConfig }: {
+  modelId: string | null
+  clusterId: string | null
+  deploymentPath: DeploymentPath
+  pipelineConfig: PipelineDeployConfig
+  inferenceEngine: InferenceEngine | null
+  engineConfig: InferenceEngineConfig | null
+}) {
   const model = mockModels.find((m) => m.id === modelId)
   const cluster = mockClusters.find((c) => c.id === clusterId)
   const isPipeline = deploymentPath === 'pipeline'
@@ -114,21 +74,27 @@ function ReviewStep({ modelId, clusterId, deploymentPath, pipelineConfig }: { mo
             {pipelineConfig.dataSource && <div className="flex justify-between py-2 border-b border-border"><span className="text-text-secondary">Data Source</span><span className="font-mono text-xs">{pipelineConfig.dataSource}</span></div>}
           </>
         )}
+        <div className="flex justify-between py-2 border-b border-border"><span className="text-text-secondary">Inference Engine</span>
+          {inferenceEngine
+            ? <span className="text-accent-blue font-medium">{inferenceEngine}</span>
+            : <span className="text-text-muted">—</span>}
+        </div>
+        {engineConfig && Object.keys(engineConfig.params).length > 0 && (
+          <div className="py-2 border-b border-border">
+            <p className="text-text-secondary mb-2">Engine Parameters</p>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+              {Object.entries(engineConfig.params).map(([k, v]) => (
+                <div key={k} className="flex justify-between text-xs">
+                  <span className="text-text-muted font-mono">{k}</span>
+                  <span className="text-text-primary font-mono">{String(v)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="flex justify-between py-2 border-b border-border"><span className="text-text-secondary">Cluster</span><span>{cluster?.name || '-'}</span></div>
         <div className="flex justify-between py-2"><span className="text-text-secondary">Est. Cost</span><span className="text-accent-blue">{isPipeline ? '$52.80/hr' : '$47.20/hr'}</span></div>
       </div>
-      {isPipeline && (
-        <div className="mt-4 p-3 bg-bg-tertiary rounded-lg">
-          <div className="text-xs text-text-muted mb-1">Estimated Timeline</div>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="px-2 py-0.5 rounded bg-accent-purple/10 text-accent-purple">Pipeline: ~2h</span>
-            <span className="text-text-muted">→</span>
-            <span className="px-2 py-0.5 rounded bg-accent-green/10 text-accent-green">Deploy: ~5m</span>
-            <span className="text-text-muted">→</span>
-            <span className="px-2 py-0.5 rounded bg-accent-cyan/10 text-accent-cyan">Monitor: 1h</span>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
@@ -139,11 +105,18 @@ export default function NewDeploymentWizard() {
   const [modelId, setModelId] = useState<string | null>(null)
   const [clusterId, setClusterId] = useState<string | null>(null)
   const [deploymentPath, setDeploymentPath] = useState<DeploymentPath>(null)
+  const [inferenceEngine, setInferenceEngine] = useState<InferenceEngine | null>(null)
+  const [engineConfig, setEngineConfig] = useState<InferenceEngineConfig | null>(null)
   const [pipelineConfig, setPipelineConfig] = useState<PipelineDeployConfig>({
     templateId: null, trigger: 'once', schedule: '0 8 * * 1', eventSource: 'data_drift', dataSource: '', params: {},
   })
 
   const isPipeline = deploymentPath === 'pipeline'
+
+  function handleEngineSelect(engine: InferenceEngine, config: InferenceEngineConfig) {
+    setInferenceEngine(engine)
+    setEngineConfig(config)
+  }
 
   const steps = useMemo(() => {
     const base = [
@@ -156,13 +129,13 @@ export default function NewDeploymentWizard() {
     }
 
     base.push(
+      { label: 'Engine', content: <InferenceEngineStep modelId={modelId} selectedEngine={inferenceEngine} engineConfig={engineConfig} onSelect={handleEngineSelect} /> },
       { label: 'Cluster', content: <SelectClusterStep selected={clusterId} onSelect={setClusterId} /> },
-      { label: 'Intelligence', content: <IntelligencePanel onApply={() => {}} deploymentPath={deploymentPath} pipelineConfig={pipelineConfig} /> },
-      { label: 'Review', content: <ReviewStep modelId={modelId} clusterId={clusterId} deploymentPath={deploymentPath} pipelineConfig={pipelineConfig} /> },
+      { label: 'Review', content: <ReviewStep modelId={modelId} clusterId={clusterId} deploymentPath={deploymentPath} pipelineConfig={pipelineConfig} inferenceEngine={inferenceEngine} engineConfig={engineConfig} /> },
     )
 
     return base
-  }, [modelId, clusterId, deploymentPath, isPipeline, pipelineConfig])
+  }, [modelId, clusterId, deploymentPath, isPipeline, pipelineConfig, inferenceEngine, engineConfig])
 
   return (
     <div>
