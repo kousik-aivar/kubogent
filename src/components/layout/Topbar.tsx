@@ -9,7 +9,7 @@ const breadcrumbMap: Record<string, string> = {
   inference: 'Inference',
   create: 'Create',
   pipelines: 'Pipelines',
-  'ml-engineering': 'ML Engineering',
+  studio: 'Studio',
   workspace: 'Workspace',
   experiments: 'Experiments',
   settings: 'Settings',

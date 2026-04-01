@@ -14,7 +14,7 @@ import NewDeploymentWizard from './pages/aiops/deployments/NewDeploymentWizard'
 import PipelinesListPage from './pages/aiops/pipelines/PipelinesListPage'
 import PipelineDesignerPage from './pages/aiops/pipelines/PipelineDesignerPage'
 import CreatePipelinePage from './pages/aiops/pipelines/CreatePipelinePage'
-import MLEngineeringPage from './pages/ml-engineering/MLEngineeringPage'
+import StudioPage from './pages/ml-engineering/StudioPage'
 import TerminalPage from './pages/terminal/TerminalPage'
 import SettingsPage from './pages/settings/SettingsPage'
 
@@ -46,7 +46,8 @@ function App() {
         <Route path="/aiops/pipelines" element={<PipelinesListPage />} />
         <Route path="/aiops/pipelines/create" element={<CreatePipelinePage />} />
         <Route path="/aiops/pipelines/:id" element={<PipelineDesignerPage />} />
-        <Route path="/ml-engineering" element={<MLEngineeringPage />} />
+        <Route path="/studio" element={<StudioPage />} />
+        <Route path="/ml-engineering" element={<Navigate to="/studio" replace />} />
         <Route path="/terminal" element={<TerminalPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>

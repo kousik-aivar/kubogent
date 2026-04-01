@@ -23,7 +23,7 @@ export default function ModelDetailPage() {
           <h1 className="text-2xl font-semibold text-text-primary">{model.name}</h1>
           <StatusBadge status={model.status} />
         </div>
-        <button onClick={() => navigate('/aiops/inference/new')} className="flex items-center gap-2 px-4 py-2 bg-accent-green text-white rounded-lg text-sm font-medium hover:bg-accent-green/90 transition-colors">
+        <button onClick={() => navigate('/aiops/inference/new', { state: { modelId: id } })} className="flex items-center gap-2 px-4 py-2 bg-accent-green text-white rounded-lg text-sm font-medium hover:bg-accent-green/90 transition-colors">
           <Rocket className="w-4 h-4" /> Deploy Model
         </button>
       </div>

@@ -12,6 +12,7 @@ import { Server, Cpu, HardDrive, Clock, DollarSign } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import MonitoringTab from './MonitoringTab'
 import LogsEventsTab from './LogsEventsTab'
+import KubectlTerminal from '../../components/terminal/KubectlTerminal'
 
 const tabs = [
   { key: 'overview', label: 'Overview' },
@@ -22,6 +23,7 @@ const tabs = [
   { key: 'network', label: 'Networking' },
   { key: 'security', label: 'Security' },
   { key: 'autoscaling', label: 'Autoscaling' },
+  { key: 'terminal', label: 'Terminal' },
 ]
 
 const nodeGroupColumns: Column<NodeGroup>[] = [
@@ -155,6 +157,10 @@ export default function ClusterDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {activeTab === 'terminal' && (
+        <KubectlTerminal clusterName={cluster.name} />
       )}
 
       {activeTab === 'autoscaling' && (

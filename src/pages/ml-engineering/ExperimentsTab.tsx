@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Trophy, X } from 'lucide-react'
 import StatusBadge from '../../components/shared/StatusBadge'
 import { mockExperiments } from '../../data/mockExperiments'
+import { mockModels } from '../../data/mockModels'
 import { MODEL_CATEGORY_LABELS } from '../../types'
 import type { ExperimentRun } from '../../types'
 
@@ -102,16 +103,19 @@ function CompareModal({ runs, onClose }: CompareModalProps) {
   )
 }
 
-export default function ExperimentsTab() {
+interface ExperimentsTabProps {
+  notebookId?: string
+}
+
+export default function ExperimentsTab({ notebookId }: ExperimentsTabProps) {
   const navigate = useNavigate()
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [compareRuns, setCompareRuns] = useState<[ExperimentRun, ExperimentRun] | null>(null)
   const [modelFilter, setModelFilter] = useState<string>('all')
 
-  const models = Array.from(new Set(mockExperiments.map((e) => e.modelName)))
-  const filtered = modelFilter === 'all'
-    ? mockExperiments
-    : mockExperiments.filter((e) => e.modelName === modelFilter)
+  const base = notebookId ? mockExperiments.filter((e) => e.notebookId === notebookId) : mockExperiments
+  const models = Array.from(new Set(base.map((e) => e.modelName)))
+  const filtered = modelFilter === 'all' ? base : base.filter((e) => e.modelName === modelFilter)
 
   function toggleSelect(id: string) {
     setSelected((prev) => {
@@ -210,7 +214,10 @@ export default function ExperimentsTab() {
                 <td className="px-4 py-3">
                   {run.status === 'Completed' && (
                     <button
-                      onClick={() => navigate('/aiops/pipelines/create')}
+                      onClick={() => {
+                        const modelId = mockModels.find((m) => m.name === run.modelName)?.id ?? null
+                        navigate('/aiops/pipelines/create', { state: { modelId } })
+                      }}
                       className="flex items-center gap-1 text-xs text-accent-blue hover:underline whitespace-nowrap"
                     >
                       Promote <ArrowRight className="w-3 h-3" />
