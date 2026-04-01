@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, ArrowLeft, Upload, X, Clock, Tag } from 'lucide-react'
+import { Plus, ArrowLeft, Upload, X, Clock, Tag, Maximize2, Minimize2 } from 'lucide-react'
 import TabGroup from '../../components/shared/TabGroup'
 import ExperimentsTab from './ExperimentsTab'
 import WorkspaceTab from './WorkspaceTab'
@@ -241,9 +241,10 @@ function NotebookWorkspace({ notebook, onBack }: { notebook: MockNotebook; onBac
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('notebook')
   const [showPublish, setShowPublish] = useState(false)
+  const [isFullScreen, setIsFullScreen] = useState(false)
 
   return (
-    <div>
+    <div className={isFullScreen ? 'fixed inset-0 z-50 bg-bg-primary overflow-y-auto p-6' : 'relative'}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -272,6 +273,17 @@ function NotebookWorkspace({ notebook, onBack }: { notebook: MockNotebook; onBac
             className="flex items-center gap-1.5 px-4 py-2 bg-accent-green text-white rounded-lg text-sm font-medium hover:bg-accent-green/90 transition-colors"
           >
             <Upload className="w-4 h-4" /> Publish Model
+          </button>
+          <button
+            onClick={() => setIsFullScreen(!isFullScreen)}
+            aria-label={isFullScreen ? 'Exit full screen' : 'Full screen'}
+            title={isFullScreen ? 'Exit full screen' : 'Full screen'}
+            className="p-2 rounded-lg hover:bg-bg-tertiary transition-colors"
+          >
+            {isFullScreen
+              ? <Minimize2 className="w-4 h-4 text-text-secondary" />
+              : <Maximize2 className="w-4 h-4 text-text-secondary" />
+            }
           </button>
         </div>
       </div>
