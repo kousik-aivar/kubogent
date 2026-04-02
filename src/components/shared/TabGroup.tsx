@@ -7,11 +7,13 @@ interface TabGroupProps {
   tabs: Tab[]
   activeTab: string
   onChange: (key: string) => void
+  /** Pass true when TabGroup is already inside a sticky container */
+  unsticky?: boolean
 }
 
-export default function TabGroup({ tabs, activeTab, onChange }: TabGroupProps) {
+export default function TabGroup({ tabs, activeTab, onChange, unsticky = false }: TabGroupProps) {
   return (
-    <div className="sticky top-0 z-20 -mx-6 px-6 bg-bg-primary flex border-b border-border mb-6">
+    <div className={`${unsticky ? '' : 'sticky top-0 z-20 -mx-6 px-6 bg-bg-primary'} flex border-b border-border mb-6`}>
       {tabs.map((tab) => (
         <button
           key={tab.key}

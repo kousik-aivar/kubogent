@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Plus, ArrowLeft, Upload, X, Clock, Tag, Maximize2, Minimize2 } from 'lucide-react'
 import TabGroup from '../../components/shared/TabGroup'
@@ -242,6 +242,18 @@ function NotebookWorkspace({ notebook, onBack }: { notebook: MockNotebook; onBac
   const [activeTab, setActiveTab] = useState('notebook')
   const [showPublish, setShowPublish] = useState(false)
   const [isFullScreen, setIsFullScreen] = useState(false)
+  const [savedLabel, setSavedLabel] = useState('Saved')
+  const mountedAt = useRef(Date.now())
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const s = Math.floor((Date.now() - mountedAt.current) / 1000)
+      if (s < 60) setSavedLabel('Saved')
+      else if (s < 3600) setSavedLabel(`Saved ${Math.floor(s / 60)}m ago`)
+      else setSavedLabel('Saved')
+    }, 30000) // update every 30s
+    return () => clearInterval(timer)
+  }, []) // run once on mount — timer resets per notebook open
 
   return (
     <div className={isFullScreen ? 'fixed inset-0 z-50 bg-bg-primary overflow-y-auto p-6' : 'relative'}>
@@ -253,6 +265,10 @@ function NotebookWorkspace({ notebook, onBack }: { notebook: MockNotebook; onBac
           </button>
           <span className="text-text-muted">/</span>
           <h1 className="text-lg font-semibold text-text-primary font-mono">{notebook.name}</h1>
+          <span className="flex items-center gap-1.5 text-xs text-text-muted">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent-green" />
+            {savedLabel}
+          </span>
           <span className={`text-xs px-2 py-0.5 rounded font-medium ${
             notebook.modelCategory === 'llm' ? 'bg-accent-purple/10 text-accent-purple' :
             notebook.modelCategory === 'object-detect' ? 'bg-accent-blue/10 text-accent-blue' :

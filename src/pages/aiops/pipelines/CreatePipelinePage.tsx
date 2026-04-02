@@ -137,15 +137,21 @@ export default function CreatePipelinePage() {
         {steps.map((step, i) => (
           <div key={step.key} className="flex items-center flex-shrink-0">
             <div className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${
-                i < stepIndex
-                  ? 'bg-accent-green text-white'
-                  : i === stepIndex
-                  ? 'bg-accent-blue text-white'
-                  : 'bg-bg-tertiary text-text-muted'
-              }`}>
-                {i < stepIndex ? <Check className="w-3.5 h-3.5" /> : i + 1}
-              </div>
+              {i < stepIndex ? (
+                <button
+                  onClick={() => setStepIndex(i)}
+                  title={`Go back to ${step.label}`}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 bg-accent-green text-white hover:bg-accent-green/80 transition-colors"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${
+                  i === stepIndex ? 'bg-accent-blue text-white' : 'bg-bg-tertiary text-text-muted'
+                }`}>
+                  {i + 1}
+                </div>
+              )}
               <span className={`text-xs ${i <= stepIndex ? 'text-text-primary' : 'text-text-muted'}`}>
                 {step.label}
               </span>
