@@ -2,7 +2,7 @@
 
 **Version:** 1.0  
 **Status:** Draft for engineering review  
-**Stack:** React + TypeScript (frontend) · REST + WebSocket API · RDS PostgreSQL · AWS EKS
+**Stack:** React + TypeScript (frontend) · Go API (REST + WebSocket) · RDS PostgreSQL · AWS EKS
 
 ---
 
@@ -27,7 +27,7 @@ graph TB
 
     subgraph kubogent_aws["AWS — Kubogent Account"]
         ALB["ALB / API Gateway"]
-        API["Kubogent API\nREST + WebSocket"]
+        API["Kubogent API (Go)\nREST + WebSocket"]
         RDS[("RDS PostgreSQL\nMetadata store")]
         SM["Secrets Manager\nkubeconfigs / tokens"]
         S3_art["S3\nModel artifacts"]
@@ -126,7 +126,7 @@ sequenceDiagram
 | Networking | VPC, subnets, security groups, endpoint access config |
 | Security | Pod security admission, IMDSv2, audit logging, encryption, network policies |
 | Autoscaling | Karpenter provisioner config + YAML view |
-| Terminal | kubectl WebSocket terminal with namespace selector |
+| Terminal | kubectl WebSocket terminal with namespace selector (Go — `gorilla/websocket` + `client-go`) |
 
 #### Observability architecture
 
@@ -152,6 +152,8 @@ graph LR
     FE -->|embed iframe| GRAF
     FE -->|REST poll| API
 ```
+
+**Terminal implementation:** Go — `gorilla/websocket` for the WebSocket upgrade; `k8s.io/client-go` for pod exec (`/exec` subresource). The API server proxies stdin/stdout/stderr between browser and the container's shell. Each session is scoped to a cluster+namespace and authenticated via the user's JWT.
 
 **GPU metrics scraped via:** DCGM Exporter (`nvidia/dcgm-exporter`) — standard on GPU node groups.  
 **Required Prometheus rules:** `kube-prometheus-stack` Helm chart; no custom rules needed for Phase 1.
@@ -456,7 +458,7 @@ experiment_runs        (id, notebook_id, model_id, hyperparams JSONB, metrics JS
 
 | Component | Service | Notes |
 |---|---|---|
-| API server | ECS Fargate or EKS | Stateless, horizontally scalable |
+| API server | ECS Fargate or EKS | Go binary — stateless, horizontally scalable |
 | Database | RDS PostgreSQL 15 | Multi-AZ for production |
 | Secrets | AWS Secrets Manager | One secret per cluster kubeconfig / token |
 | File store | S3 | Model artifacts, import staging |
