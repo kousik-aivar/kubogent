@@ -192,7 +192,7 @@ flowchart TD
 | Step | Fields |
 |---|---|
 | 1. Model | Select from catalog or import inline |
-| 2. Engine | vLLM · TGI · Triton · TorchServe · ONNX Runtime · llama.cpp |
+| 2. Engine | vLLM · Ray Serve · Triton · TensorRT-LLM |
 | 3. Engine config | Replicas, GPU count, quantization (FP16/INT8/INT4), context length, max batch size, tensor parallel size |
 | 4. Cluster | Select registered cluster + namespace |
 | 5. Review | Summary + estimated cost/hr → Deploy |
@@ -220,12 +220,10 @@ flowchart TD
 
 | Framework | Best for | Key args |
 |---|---|---|
-| vLLM | LLM (latency) | `--dtype`, `--tensor-parallel-size`, `--gpu-memory-utilization` |
-| TGI | LLM (HF-native) | `--quantize`, `--max-input-length`, `--max-batch-prefill-tokens` |
-| Triton | Vision / multi-model | model repository, backend config |
-| TorchServe | General PyTorch | `--workers`, `--batch-size` |
-| ONNX Runtime | Cross-platform | execution provider (CUDA/CPU) |
-| llama.cpp | CPU-friendly LLM | `--n-gpu-layers`, `--ctx-size` |
+| vLLM | LLM — lowest latency on GPU | `--dtype`, `--tensor-parallel-size`, `--gpu-memory-utilization` |
+| Ray Serve | Multi-model pipelines, custom pre/post-processing | `num_replicas`, `max_concurrent_queries`, `num_gpus`, autoscaling min/max replicas |
+| Triton | Vision / multi-model / audio | model repository, backend config (TensorRT, ONNX, PyTorch) |
+| TensorRT-LLM | LLM — maximum throughput on NVIDIA H100/A100 | `--max-batch-size`, `--max-input-len`, `--tensor-parallelism` |
 
 #### Deployment detail — tabs
 
@@ -427,12 +425,10 @@ experiment_runs        (id, notebook_id, model_id, hyperparams JSONB, metrics JS
 
 | Framework | LLM | Vision | Audio | CPU support | HF-native | Streaming |
 |---|---|---|---|---|---|---|
-| vLLM | ✅ Best | ❌ | ❌ | ❌ | ✅ | ✅ |
-| TGI | ✅ Good | ❌ | ❌ | ✅ limited | ✅ | ✅ |
+| vLLM | ✅ Best (latency) | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Ray Serve | ✅ Good | ✅ Good | ✅ Good | ✅ limited | ❌ | ✅ |
 | Triton | ✅ | ✅ Best | ✅ | ✅ | ❌ | ❌ |
-| TorchServe | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
-| ONNX Runtime | ✅ | ✅ | ✅ Best | ✅ Best | ❌ | ❌ |
-| llama.cpp | ✅ CPU-best | ❌ | ❌ | ✅ Best | ❌ | ✅ |
+| TensorRT-LLM | ✅ Best (throughput, H100/A100) | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 ---
 
@@ -440,15 +436,15 @@ experiment_runs        (id, notebook_id, model_id, hyperparams JSONB, metrics JS
 
 | Category | Recommended engine | Fallback |
 |---|---|---|
-| LLM (7B–70B) | vLLM | TGI |
-| SLM (< 3B) | vLLM · llama.cpp | ONNX Runtime |
-| Code | vLLM | TGI |
-| Embedding | ONNX Runtime | TorchServe |
-| STT | ONNX Runtime | Triton |
-| TTS | ONNX Runtime | Triton |
-| Vision / Diffusion | Triton | TorchServe |
-| Object Detection | Triton | ONNX Runtime |
-| Traditional ML | ONNX Runtime | TorchServe |
+| LLM (7B–70B) | vLLM (latency) · TensorRT-LLM (throughput on H100/A100) | Ray Serve |
+| SLM (< 3B) | vLLM | Ray Serve |
+| Code | vLLM | TensorRT-LLM |
+| Embedding | Triton | Ray Serve |
+| STT | Triton | Ray Serve |
+| TTS | Triton | Ray Serve |
+| Vision / Diffusion | Triton | Ray Serve |
+| Object Detection | Triton | Ray Serve |
+| Traditional ML | Ray Serve | Triton |
 
 ---
 
