@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Plus, ArrowLeft, Upload, X, Clock, Tag, Maximize2, Minimize2 } from 'lucide-react'
+import { Plus, ArrowLeft, Upload, X, Clock, Tag, Maximize2, Minimize2, Copy, Check } from 'lucide-react'
 import TabGroup from '../../components/shared/TabGroup'
 import ExperimentsTab from './ExperimentsTab'
 import WorkspaceTab from './WorkspaceTab'
@@ -85,46 +85,336 @@ function NewNotebookModal({ onClose, onCreate }: {
 
 // ─── Optimization tab ─────────────────────────────────────────────────────────
 
-function OptimizationTab() {
-  const [quant, setQuant] = useState('FP16')
-  const [tp, setTp] = useState(4)
-  const quantOptions = [
-    { label: 'FP32', desc: 'Full precision, max accuracy', mem: '264 GB', speed: '1×' },
-    { label: 'FP16', desc: 'Half precision, good balance', mem: '140 GB', speed: '1.8×' },
-    { label: 'INT8', desc: 'Integer quantized, fast', mem: '70 GB', speed: '2.5×' },
-    { label: 'INT4', desc: 'Aggressive quantization', mem: '35 GB', speed: '3.2×' },
+type ServingProfile = 'latency' | 'throughput' | 'cost'
+type ExportFormat   = 'pytorch' | 'onnx' | 'tensorrt' | 'gguf'
+
+function OptimizationTab({ notebook }: { notebook: MockNotebook }) {
+  const isLLM    = notebook.modelCategory === 'llm' || notebook.modelCategory === 'slm'
+  const isVision = notebook.modelCategory === 'object-detect' || notebook.modelCategory === 'vision' || notebook.modelCategory === 'diffusion'
+
+  const [profile,   setProfile]   = useState<ServingProfile>('latency')
+  const [format,    setFormat]    = useState<ExportFormat>(isLLM ? 'tensorrt' : 'onnx')
+  const [copied,    setCopied]    = useState(false)
+  const [checklist, setChecklist] = useState<Record<string, boolean>>({
+    trained: false, quantized: false, exported: false, benchmarked: false, published: false,
+  })
+
+  const profiles: Array<{ key: ServingProfile; label: string; desc: string; quant: string; runtime: string; gpus: number }> = [
+    {
+      key: 'latency',
+      label: 'Latency-Optimised',
+      desc: 'Lowest response time. Best for interactive APIs, chatbots, real-time inference.',
+      quant: 'FP16',
+      runtime: isLLM ? 'vLLM' : isVision ? 'TensorRT' : 'ONNX Runtime',
+      gpus: 1,
+    },
+    {
+      key: 'throughput',
+      label: 'Throughput-Optimised',
+      desc: 'Highest tokens/sec or frames/sec. Best for batch pipelines and offline processing.',
+      quant: 'INT8',
+      runtime: isLLM ? 'vLLM (continuous batching)' : 'ONNX Runtime',
+      gpus: 2,
+    },
+    {
+      key: 'cost',
+      label: 'Cost-Optimised',
+      desc: 'Best efficiency per dollar. Best for dev/test, low-traffic, or CPU-only deployments.',
+      quant: isLLM ? 'INT4 / GGUF' : 'INT8',
+      runtime: isLLM ? 'llama.cpp' : 'ONNX Runtime (CPU)',
+      gpus: 0,
+    },
   ]
-  const selected = quantOptions.find((q) => q.label === quant)
+
+  const formats: Array<{ key: ExportFormat; label: string; compat: string; accuracy: string; size: string; best: string; supported: boolean }> = [
+    { key: 'pytorch',   label: 'PyTorch',   compat: 'Universal',          accuracy: '100%',    size: '1×',        best: 'Development & fine-tuning',   supported: true     },
+    { key: 'onnx',      label: 'ONNX',      compat: 'CPU / GPU / Edge',   accuracy: '99.9%',   size: '0.95×',     best: 'Cross-platform deployment',   supported: true     },
+    { key: 'tensorrt',  label: 'TensorRT',  compat: 'NVIDIA GPU only',    accuracy: '99.5%',   size: '0.7×',      best: 'Lowest latency on GPU',       supported: true     },
+    { key: 'gguf',      label: 'GGUF',      compat: 'CPU + GPU offload',  accuracy: '98–99%',  size: '0.25–0.5×', best: 'Portable CPU inference',      supported: isLLM    },
+  ]
+
+  const selectedProfile = profiles.find((p) => p.key === profile)!
+
+  function getSnippet(): string {
+    if (isLLM) {
+      if (format === 'gguf') return [
+        '# Cost-optimised: GGUF (Q4_K_M) via llama.cpp',
+        '# Convert first: python convert_hf_to_gguf.py ./model --outtype q4_k_m',
+        '',
+        'from llama_cpp import Llama',
+        '',
+        'llm = Llama(',
+        '    model_path="model-q4_k_m.gguf",',
+        '    n_ctx=4096,',
+        '    n_gpu_layers=-1,  # offload all layers to GPU if available',
+        ')',
+        'output = llm("Explain transformers in one sentence:", max_tokens=256)',
+        'print(output["choices"][0]["text"])',
+      ].join('\n')
+
+      if (format === 'onnx') return [
+        '# Export LLM to ONNX via Hugging Face Optimum',
+        'from optimum.exporters.onnx import main_export',
+        '',
+        'main_export(',
+        `    model_name_or_path="${notebook.modelId}",`,
+        '    output="./model-onnx/",',
+        '    task="text-generation-with-past",',
+        '    dtype="fp16",',
+        ')',
+        '',
+        'import onnxruntime as ort',
+        'sess = ort.InferenceSession(',
+        '    "./model-onnx/model.onnx",',
+        '    providers=["CUDAExecutionProvider"],',
+        ')',
+      ].join('\n')
+
+      // pytorch or tensorrt → serve with vLLM (best LLM runtime for both profiles)
+      return [
+        `# ${profile === 'latency' ? 'Latency' : 'Throughput'}-optimised: vLLM with FP16`,
+        'from vllm import LLM, SamplingParams',
+        '',
+        'llm = LLM(',
+        `    model="${notebook.modelId}",`,
+        '    dtype="float16",',
+        '    tensor_parallel_size=1,',
+        '    gpu_memory_utilization=0.9,',
+        ')',
+        'params = SamplingParams(temperature=0.7, max_tokens=512)',
+        'outputs = llm.generate(["What is machine learning?"], params)',
+        'for o in outputs:',
+        '    print(o.outputs[0].text)',
+      ].join('\n')
+    }
+
+    if (isVision) {
+      if (format === 'tensorrt') return [
+        '# TensorRT export — lowest latency for NVIDIA GPU vision inference',
+        'import torch',
+        'from torch2trt import torch2trt',
+        '',
+        'model = torch.load("best.pt").cuda().eval()',
+        'dummy = torch.ones((1, 3, 640, 640)).cuda()',
+        'model_trt = torch2trt(model, [dummy], fp16_mode=True)',
+        'torch.save(model_trt.state_dict(), "model_trt.pth")',
+        'print("TensorRT model saved — expect 3–4× speedup over PyTorch")',
+      ].join('\n')
+
+      return [  // onnx or pytorch
+        '# Export to ONNX — CPU and GPU, cross-platform',
+        'import torch',
+        '',
+        'model = torch.load("best.pt").eval()',
+        'dummy = torch.randn(1, 3, 640, 640)',
+        'torch.onnx.export(',
+        '    model, dummy, "model.onnx",',
+        '    opset_version=17,',
+        '    input_names=["images"],',
+        '    output_names=["output"],',
+        '    dynamic_axes={"images": {0: "batch"}},',
+        ')',
+        '',
+        'import onnxruntime as ort',
+        'sess = ort.InferenceSession("model.onnx",',
+        '    providers=["CUDAExecutionProvider"])',
+        'print("ONNX model ready")',
+      ].join('\n')
+    }
+
+    // STT / TTS / other
+    return [
+      '# Export audio model to ONNX for efficient inference',
+      '# ONNX Runtime is 2–3× faster than native PyTorch for STT/TTS',
+      'from optimum.exporters.onnx import main_export',
+      '',
+      'main_export(',
+      `    model_name_or_path="${notebook.modelId}",`,
+      '    output="./model-onnx/",',
+      '    task="automatic-speech-recognition",',
+      ')',
+      '',
+      'import onnxruntime as ort',
+      'sess = ort.InferenceSession(',
+      '    "./model-onnx/model.onnx",',
+      '    providers=["CUDAExecutionProvider", "CPUExecutionProvider"],',
+      ')',
+    ].join('\n')
+  }
+
+  function copySnippet() {
+    navigator.clipboard.writeText(getSnippet())
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000) })
+      .catch(() => undefined)
+  }
+
+  const checklistItems = [
+    { key: 'trained',     label: 'Model trained or loaded' },
+    { key: 'quantized',   label: 'Quantization applied' },
+    { key: 'exported',    label: `Exported to ${format.toUpperCase()}` },
+    { key: 'benchmarked', label: 'Benchmark run (see Benchmarks tab)' },
+    { key: 'published',   label: 'Published to registry or S3' },
+  ]
+  const readyCount = checklistItems.filter((item) => checklist[item.key]).length
+
   return (
-    <div className="grid grid-cols-3 gap-6 mt-4">
-      <div className="col-span-2 space-y-6">
-        <div className="bg-bg-secondary border border-border rounded-xl p-5">
-          <h3 className="text-sm font-medium text-text-primary mb-4">Quantization</h3>
-          <div className="grid grid-cols-4 gap-3">
-            {quantOptions.map((q) => (
-              <button key={q.label} onClick={() => setQuant(q.label)}
-                className={`text-left p-3 rounded-lg border transition-colors ${quant === q.label ? 'border-accent-blue bg-accent-blue/5' : 'border-border hover:border-border-light'}`}>
-                <div className="text-sm font-medium text-text-primary">{q.label}</div>
-                <div className="text-xs text-text-muted mt-1">{q.desc}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="bg-bg-secondary border border-border rounded-xl p-5">
-          <h3 className="text-sm font-medium text-text-primary mb-4">Tensor Parallelism</h3>
-          <input type="range" min={1} max={8} value={tp} onChange={(e) => setTp(Number(e.target.value))} className="w-full" />
-          <div className="flex justify-between text-xs text-text-muted mt-1">
-            <span>1 GPU</span><span className="text-text-primary font-medium">{tp} GPUs</span><span>8 GPUs</span>
-          </div>
-        </div>
+    <div className="space-y-6 mt-4">
+      <p className="text-sm text-text-secondary">
+        Choose a serving strategy for{' '}
+        <span className="font-medium text-text-primary font-mono">{notebook.name}</span>.
+        {' '}The generated snippet applies the chosen strategy — paste it into a new notebook cell.
+      </p>
+
+      {/* Serving profiles */}
+      <div className="grid grid-cols-3 gap-4">
+        {profiles.map((p) => (
+          <button
+            key={p.key}
+            onClick={() => setProfile(p.key)}
+            className={`text-left p-4 rounded-xl border transition-colors ${
+              profile === p.key
+                ? 'border-accent-blue bg-accent-blue/5'
+                : 'border-border hover:border-border-light bg-bg-secondary'
+            }`}
+          >
+            <div className="text-sm font-medium text-text-primary mb-1">{p.label}</div>
+            <div className="text-xs text-text-muted leading-relaxed">{p.desc}</div>
+            <div className="mt-3 flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-tertiary text-text-secondary font-mono">{p.quant}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-tertiary text-text-secondary">{p.runtime}</span>
+              {p.gpus > 0
+                ? <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-tertiary text-text-secondary">{p.gpus} GPU{p.gpus > 1 ? 's' : ''}</span>
+                : <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent-amber/10 text-accent-amber">CPU-friendly</span>
+              }
+            </div>
+          </button>
+        ))}
       </div>
-      <div className="bg-bg-secondary border border-border rounded-xl p-5">
-        <h3 className="text-sm font-medium text-text-primary mb-4">Estimated Impact</h3>
+
+      <div className="grid grid-cols-3 gap-6">
+        {/* Left: format table + snippet */}
+        <div className="col-span-2 space-y-6">
+          {/* Export format */}
+          <div className="bg-bg-secondary border border-border rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border">
+              <h3 className="text-sm font-medium text-text-primary">Export Format</h3>
+              <p className="text-xs text-text-muted mt-0.5">Grayed formats are not applicable to this model type.</p>
+            </div>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  {['Format', 'Compatibility', 'Accuracy', 'Size vs PT', 'Best for'].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-medium text-text-muted uppercase tracking-wider">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {formats.map((f) => (
+                  <tr
+                    key={f.key}
+                    onClick={() => f.supported && setFormat(f.key)}
+                    className={`border-b border-border last:border-0 transition-colors ${
+                      !f.supported
+                        ? 'opacity-30 cursor-not-allowed'
+                        : format === f.key
+                        ? 'bg-accent-blue/5 cursor-pointer'
+                        : 'hover:bg-bg-tertiary cursor-pointer'
+                    }`}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        {format === f.key && f.supported && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-accent-blue flex-shrink-0" />
+                        )}
+                        <span className={`text-sm font-medium ${format === f.key && f.supported ? 'text-accent-blue' : 'text-text-primary'}`}>
+                          {f.label}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-text-secondary">{f.compat}</td>
+                    <td className="px-4 py-3 text-sm font-mono text-text-primary">{f.accuracy}</td>
+                    <td className="px-4 py-3 text-sm font-mono text-text-secondary">{f.size}</td>
+                    <td className="px-4 py-3 text-xs text-text-muted">{f.best}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Generated snippet */}
+          <div className="bg-bg-secondary border border-border rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-text-primary">Generated Snippet</h3>
+                <p className="text-xs text-text-muted mt-0.5">Paste into a new cell in your notebook to apply this strategy.</p>
+              </div>
+              <button
+                onClick={copySnippet}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-bg-tertiary rounded-lg transition-colors"
+              >
+                {copied
+                  ? <><Check className="w-3.5 h-3.5 text-accent-green" /><span className="text-accent-green">Copied</span></>
+                  : <><Copy className="w-3.5 h-3.5" />Copy to clipboard</>
+                }
+              </button>
+            </div>
+            <pre className="p-5 text-xs text-text-secondary font-mono leading-relaxed overflow-x-auto bg-bg-primary whitespace-pre">
+              {getSnippet()}
+            </pre>
+          </div>
+        </div>
+
+        {/* Right: summary + readiness */}
         <div className="space-y-4">
-          <div><div className="text-xs text-text-muted mb-1">Memory Footprint</div><div className="text-lg font-semibold text-text-primary">{selected?.mem}</div></div>
-          <div><div className="text-xs text-text-muted mb-1">Speed Multiplier</div><div className="text-lg font-semibold text-accent-green">{selected?.speed}</div></div>
-          <div><div className="text-xs text-text-muted mb-1">TP Degree</div><div className="text-lg font-semibold text-text-primary">{tp}-way</div></div>
-          <div><div className="text-xs text-text-muted mb-1">Min GPUs Required</div><div className="text-lg font-semibold text-accent-blue">{tp}</div></div>
+          <div className="bg-bg-secondary border border-border rounded-xl p-5">
+            <h3 className="text-sm font-medium text-text-primary mb-4">Strategy Summary</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between"><span className="text-text-secondary">Profile</span><span className="text-text-primary capitalize">{profile}</span></div>
+              <div className="flex justify-between"><span className="text-text-secondary">Format</span><span className="text-text-primary uppercase font-mono text-xs">{format}</span></div>
+              <div className="flex justify-between"><span className="text-text-secondary">Quantization</span><span className="text-text-primary font-mono text-xs">{selectedProfile.quant}</span></div>
+              <div className="flex justify-between"><span className="text-text-secondary">Runtime</span><span className="text-text-primary text-xs text-right max-w-[60%]">{selectedProfile.runtime}</span></div>
+              <div className="flex justify-between"><span className="text-text-secondary">Hardware</span><span className="text-text-primary text-xs">{selectedProfile.gpus === 0 ? 'CPU / GPU' : `${selectedProfile.gpus} GPU${selectedProfile.gpus > 1 ? 's' : ''} min`}</span></div>
+            </div>
+          </div>
+
+          <div className="bg-bg-secondary border border-border rounded-xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-text-primary">Readiness</h3>
+              <span className={`text-xs font-medium ${readyCount === checklistItems.length ? 'text-accent-green' : 'text-text-muted'}`}>
+                {readyCount}/{checklistItems.length}
+              </span>
+            </div>
+            <div className="space-y-3">
+              {checklistItems.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => setChecklist((prev) => ({ ...prev, [item.key]: !prev[item.key] }))}
+                  className="w-full flex items-center gap-3 text-left group"
+                >
+                  <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-colors ${
+                    checklist[item.key]
+                      ? 'bg-accent-green border-accent-green'
+                      : 'border-border group-hover:border-border-light'
+                  }`}>
+                    {checklist[item.key] && <Check className="w-2.5 h-2.5 text-white" />}
+                  </div>
+                  <span className={`text-xs transition-colors ${
+                    checklist[item.key]
+                      ? 'text-text-muted line-through'
+                      : 'text-text-secondary group-hover:text-text-primary'
+                  }`}>
+                    {item.key === 'exported' ? `Exported to ${format.toUpperCase()}` : item.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+            {readyCount === checklistItems.length && (
+              <div className="mt-4 p-3 rounded-lg bg-accent-green/10 border border-accent-green/20">
+                <p className="text-xs font-medium text-accent-green">Ready to deploy</p>
+                <p className="text-xs text-text-muted mt-0.5">Push to pipeline or publish directly.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -308,7 +598,7 @@ function NotebookWorkspace({ notebook, onBack }: { notebook: MockNotebook; onBac
 
       {activeTab === 'notebook'     && <NotebookViewer notebook={notebook} />}
       {activeTab === 'experiments'  && <ExperimentsTab notebookId={notebook.id} />}
-      {activeTab === 'optimization' && <OptimizationTab />}
+      {activeTab === 'optimization' && <OptimizationTab notebook={notebook} />}
       {activeTab === 'benchmarks'   && <BenchmarksTab />}
       {activeTab === 'servers'      && <WorkspaceTab />}
 
