@@ -42,34 +42,34 @@ export default function DeploymentDetailPage() {
 
   return (
     <div>
-      <Link to="/aiops/inference" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary mb-4">
-        <ArrowLeft className="w-4 h-4" /> Back to Inference
-      </Link>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <div className="flex items-center gap-4 mb-1">
-            <h1 className="text-2xl font-semibold text-text-primary">{dep.modelName}</h1>
-            <StatusBadge status={dep.status} />
-          </div>
-          <div className="flex items-center gap-4 text-sm text-text-secondary">
-            <span>{dep.clusterName}</span>
-            <span className="px-2 py-0.5 rounded bg-bg-tertiary text-xs">{dep.servingFramework}</span>
-            {dep.modelVersion && <span className="text-xs text-text-muted">{dep.modelVersion}</span>}
-            {dep.pipelineName && (
-              <Link to={`/aiops/pipelines/${dep.pipelineId}`} className="flex items-center gap-1 text-xs text-accent-purple hover:underline">
-                <GitBranch className="w-3 h-3" /> via {dep.pipelineName}
-              </Link>
-            )}
-            {!dep.pipelineName && (
-              <span className="text-xs px-2 py-0.5 rounded bg-accent-green/10 text-accent-green">Direct Deploy</span>
-            )}
-            {dep.status === 'Running' && (
-              <a href="#" className="flex items-center gap-1 text-accent-blue hover:underline text-xs">
-                {dep.endpointUrl} <ExternalLink className="w-3 h-3" />
-              </a>
-            )}
-          </div>
+      {/* Sticky context header: back + identity + tabs never scroll away */}
+      <div className="sticky top-0 z-20 -mx-6 px-6 bg-bg-primary pt-4 pb-0">
+        <Link to="/aiops/inference" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary mb-3">
+          <ArrowLeft className="w-4 h-4" /> Back to Inference
+        </Link>
+        <div className="flex items-center gap-4 mb-1">
+          <h1 className="text-2xl font-semibold text-text-primary">{dep.modelName}</h1>
+          <StatusBadge status={dep.status} />
+          <span className="text-sm text-text-muted">{dep.clusterName}</span>
+          <span className="px-2 py-0.5 rounded bg-bg-tertiary text-xs">{dep.servingFramework}</span>
+          {dep.status === 'Running' && (
+            <a href="#" className="flex items-center gap-1 text-accent-blue hover:underline text-xs ml-auto">
+              {dep.endpointUrl} <ExternalLink className="w-3 h-3" />
+            </a>
+          )}
         </div>
+        <div className="flex items-center gap-3 mb-4 text-sm">
+          {dep.modelVersion && <span className="text-xs text-text-muted">{dep.modelVersion}</span>}
+          {dep.pipelineName && (
+            <Link to={`/aiops/pipelines/${dep.pipelineId}`} className="flex items-center gap-1 text-xs text-accent-purple hover:underline">
+              <GitBranch className="w-3 h-3" /> via {dep.pipelineName}
+            </Link>
+          )}
+          {!dep.pipelineName && (
+            <span className="text-xs px-2 py-0.5 rounded bg-accent-green/10 text-accent-green">Direct Deploy</span>
+          )}
+        </div>
+        <TabGroup unsticky tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
 
       {dep.deploymentPath === 'pipeline' && dep.pipelineId && dep.pipelineRunId && (() => {
@@ -143,8 +143,6 @@ export default function DeploymentDetailPage() {
           <MetricCard label="GPU Memory" value={`${dep.gpuMemoryUsage}`} suffix="%" icon={Cpu} trend={2.3} trendDirection="up" />
         </div>
       )}
-
-      <TabGroup tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'metrics' && dep.status === 'Running' && (
         <div className="grid grid-cols-2 gap-6">

@@ -144,6 +144,7 @@ export default function NewClusterWizard() {
         currentStep={step}
         onNext={() => setStep(step + 1)}
         onBack={() => setStep(step - 1)}
+        onJumpTo={(i) => setStep(i)}
         onComplete={() => setCompleted(true)}
         isCompleted={completed}
         completedMessage="Cluster Provisioning Started!"

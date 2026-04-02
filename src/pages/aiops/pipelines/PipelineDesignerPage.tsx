@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Play, Database, Brain, BarChart3, Rocket, Activity, Package } from 'lucide-react'
+import { ArrowLeft, Play, Database, Brain, BarChart3, Rocket, Activity, Package, Maximize2, Minimize2 } from 'lucide-react'
 import {
   ReactFlow,
   Background,
@@ -161,6 +161,7 @@ export default function PipelineDesignerPage() {
   const pipeline = mockPipelines.find((p) => p.id === id)
   const [selectedNode, setSelectedNode] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('designer')
+  const [isFullScreen, setIsFullScreen] = useState(false)
 
   const onNodeClick = useCallback((_: unknown, node: Node) => {
     setSelectedNode(node.id)
@@ -232,15 +233,44 @@ export default function PipelineDesignerPage() {
           <StatusBadge status={pipeline.status} />
           <span className="text-sm text-text-muted">{pipeline.scheduler}</span>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-accent-green text-white rounded-lg text-sm font-medium hover:bg-accent-green/90 transition-colors">
-          <Play className="w-4 h-4" /> Run Pipeline
-        </button>
+        <div className="flex items-center gap-2">
+          <button className="flex items-center gap-2 px-4 py-2 bg-accent-green text-white rounded-lg text-sm font-medium hover:bg-accent-green/90 transition-colors">
+            <Play className="w-4 h-4" /> Run Pipeline
+          </button>
+          <button
+            onClick={() => setIsFullScreen(!isFullScreen)}
+            aria-label={isFullScreen ? 'Exit full screen' : 'Full screen canvas'}
+            title={isFullScreen ? 'Exit full screen' : 'Full screen canvas'}
+            className="p-2 rounded-lg hover:bg-bg-tertiary transition-colors"
+          >
+            {isFullScreen
+              ? <Minimize2 className="w-4 h-4 text-text-secondary" />
+              : <Maximize2 className="w-4 h-4 text-text-secondary" />
+            }
+          </button>
+        </div>
       </div>
 
       <TabGroup tabs={designerTabs} activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'designer' && (
-        <div className="flex gap-4" style={{ height: 'calc(100vh - 280px)' }}>
+        <div
+          className={isFullScreen ? 'fixed inset-0 z-50 bg-bg-primary p-4 flex flex-col' : 'flex gap-4'}
+          style={isFullScreen ? undefined : { height: 'calc(100vh - 280px)' }}
+        >
+          {isFullScreen && (
+            <div className="flex items-center justify-between mb-3 flex-shrink-0">
+              <span className="text-sm font-medium text-text-primary">{pipeline.name}</span>
+              <button
+                onClick={() => setIsFullScreen(false)}
+                aria-label="Exit full screen"
+                className="p-2 rounded-lg hover:bg-bg-tertiary transition-colors"
+              >
+                <Minimize2 className="w-4 h-4 text-text-secondary" />
+              </button>
+            </div>
+          )}
+          <div className={`${isFullScreen ? 'flex flex-1 gap-4' : 'flex flex-1 gap-4'}`}>
           <div className="flex-1 bg-bg-secondary border border-border rounded-xl overflow-hidden">
             <ReactFlow
               nodes={nodes}
@@ -260,6 +290,7 @@ export default function PipelineDesignerPage() {
           {selectedStage && (
             <StageDetailPanel stage={selectedStage} onClose={() => setSelectedNode(null)} />
           )}
+          </div>
         </div>
       )}
 
