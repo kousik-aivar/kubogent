@@ -48,14 +48,17 @@ export default function ClusterDetailPage() {
 
   return (
     <div>
-      <Link to="/clusters" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary mb-4">
-        <ArrowLeft className="w-4 h-4" /> Back to Clusters
-      </Link>
-      <div className="flex items-center gap-4 mb-6">
-        <h1 className="text-2xl font-semibold text-text-primary">{cluster.name}</h1>
-        <StatusBadge status={cluster.status} />
+      {/* Sticky context header: back + identity + tabs never scroll away */}
+      <div className="sticky top-0 z-20 -mx-6 px-6 bg-bg-primary pt-4 pb-0">
+        <Link to="/clusters" className="flex items-center gap-2 text-sm text-text-secondary hover:text-text-primary mb-3">
+          <ArrowLeft className="w-4 h-4" /> Back to Clusters
+        </Link>
+        <div className="flex items-center gap-4 mb-4">
+          <h1 className="text-2xl font-semibold text-text-primary">{cluster.name}</h1>
+          <StatusBadge status={cluster.status} />
+        </div>
+        <TabGroup unsticky tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
       </div>
-      <TabGroup tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'overview' && (
         <div>

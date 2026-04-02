@@ -119,6 +119,15 @@ export default function ModelDetailPage() {
           </div>
         </div>
       )}
+      {/* Floating deploy button — always reachable when scrolled deep into the page */}
+      <div className="fixed bottom-20 right-6 z-30">
+        <button
+          onClick={() => navigate('/aiops/inference/new', { state: { modelId: id } })}
+          className="flex items-center gap-2 px-4 py-2.5 bg-accent-green text-white rounded-xl text-sm font-medium hover:bg-accent-green/90 transition-colors shadow-lg"
+        >
+          <Rocket className="w-4 h-4" /> Deploy Model
+        </button>
+      </div>
     </div>
   )
 }

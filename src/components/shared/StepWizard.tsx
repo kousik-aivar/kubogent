@@ -12,6 +12,8 @@ interface StepWizardProps {
   onNext: () => void
   onBack: () => void
   onComplete: () => void
+  /** Optional: jump directly to a completed step by index */
+  onJumpTo?: (index: number) => void
   completedMessage?: string
   isCompleted?: boolean
 }
@@ -22,6 +24,7 @@ export default function StepWizard({
   onNext,
   onBack,
   onComplete,
+  onJumpTo,
   completedMessage,
   isCompleted,
 }: StepWizardProps) {
@@ -46,17 +49,27 @@ export default function StepWizard({
         {steps.map((step, i) => (
           <div key={i} className="flex items-center flex-1 last:flex-initial">
             <div className="flex items-center gap-2">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
-                  i < currentStep
-                    ? 'bg-accent-green text-white'
-                    : i === currentStep
-                    ? 'bg-accent-blue text-white'
-                    : 'bg-bg-tertiary text-text-muted'
-                }`}
-              >
-                {i < currentStep ? <Check className="w-4 h-4" /> : i + 1}
-              </div>
+              {i < currentStep && onJumpTo ? (
+                <button
+                  onClick={() => onJumpTo(i)}
+                  title={`Go back to ${step.label}`}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium bg-accent-green text-white hover:bg-accent-green/80 transition-colors"
+                >
+                  <Check className="w-4 h-4" />
+                </button>
+              ) : (
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
+                    i < currentStep
+                      ? 'bg-accent-green text-white'
+                      : i === currentStep
+                      ? 'bg-accent-blue text-white'
+                      : 'bg-bg-tertiary text-text-muted'
+                  }`}
+                >
+                  {i < currentStep ? <Check className="w-4 h-4" /> : i + 1}
+                </div>
+              )}
               <span
                 className={`text-sm hidden sm:inline ${
                   i <= currentStep ? 'text-text-primary' : 'text-text-muted'
